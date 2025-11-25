@@ -1,17 +1,17 @@
-import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { useState, useMemo } from 'react';
 import { useAppStore } from '../../store/useAppStore';
-import { StarRating, Button, Avatar } from '../../components/ui';
+import { StarRating, Avatar } from '../../components/ui';
 
 const { width } = Dimensions.get('window');
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { products, reviews, currentUser, toggleSave } = useAppStore();
+  const { products, reviews, currentUser, toggleSave, addToCart, isAuthenticated } = useAppStore();
 
   const product = products.find((p) => p.id === id);
   const productReviews = reviews.filter((r) => r.productId === id);
@@ -19,6 +19,7 @@ export default function ProductDetailScreen() {
 
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'details' | 'reviews'>('details');
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   // Build media items array (video, images only - 3D disabled for now)
   const mediaItems = useMemo(() => {
@@ -57,8 +58,26 @@ export default function ProductDetailScreen() {
     toggleSave(product.id);
   };
 
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+
+    setIsAddingToCart(true);
+    try {
+      const productId = parseInt(id as string, 10);
+      await addToCart(productId, 1);
+      router.push('/(tabs)/cart');
+    } catch (error: any) {
+      console.error('Failed to add to cart:', error);
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
@@ -72,7 +91,7 @@ export default function ProductDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         {/* Media Gallery */}
         <View>
           {mediaItems[selectedMediaIndex]?.type === 'image' && (
@@ -249,22 +268,34 @@ export default function ProductDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Bottom Bar */}
-      <View className="p-4 border-t border-gray-200 bg-white">
-        <View className="flex-row items-center space-x-3">
-          <TouchableOpacity
-            className="border-2 border-primary rounded-lg px-6 py-4 active:bg-gray-50"
-            activeOpacity={0.8}
-          >
-            <Text className="text-primary font-bold text-center">💬 Chat</Text>
-          </TouchableOpacity>
-          <View className="flex-1">
-            <Button onPress={() => console.log('Add to cart')} fullWidth>
-              Add to Cart
-            </Button>
-          </View>
-        </View>
-      </View>
+      {/* Floating Add to Cart Button */}
+      <TouchableOpacity
+        style={{
+          position: 'absolute',
+          bottom: 100,
+          right: 20,
+          width: 64,
+          height: 64,
+          backgroundColor: isAddingToCart ? '#9ca3af' : '#FF8C00',
+          borderRadius: 32,
+          alignItems: 'center',
+          justifyContent: 'center',
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4,
+        }}
+        onPress={handleAddToCart}
+        disabled={isAddingToCart}
+        activeOpacity={0.8}
+      >
+        {isAddingToCart ? (
+          <ActivityIndicator color="#fff" size="small" />
+        ) : (
+          <Text style={{ fontSize: 32 }}>🛒</Text>
+        )}
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }

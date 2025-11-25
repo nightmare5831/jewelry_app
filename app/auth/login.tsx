@@ -10,6 +10,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useAppStore } from '../../store/useAppStore';
@@ -44,9 +45,12 @@ export default function Login() {
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Ionicons name="diamond-outline" size={64} color="#2563eb" />
+          <Image
+            source={require('../../assets/icon.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>Fala Shop</Text>
-          <Text style={styles.subtitle}>Bem-vindo de volta</Text>
         </View>
 
         <View style={styles.form}>
@@ -144,6 +148,11 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 48,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    marginBottom: 8,
   },
   title: {
     fontSize: 32,

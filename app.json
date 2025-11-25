@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "Fala Shop",
-    "slug": "fala-shop",
+    "name": "Fala_Shop",
+    "slug": "fala",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "scheme": "fala-shop",
+    "scheme": "fala",
     "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -15,11 +15,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourcompany.falashop"
+      "bundleIdentifier": "com.yourcompany.fala"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.yourcompany.falashop"
@@ -34,6 +34,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "0e9e24f8-12a4-45fc-a703-de8114b8cd1b"
+      }
     }
   }
 }

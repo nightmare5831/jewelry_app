@@ -3,7 +3,7 @@ import { filterTree, type FilterConfig } from '../data/filterConfig';
 import type { Product } from '../data/products';
 import type { Review } from '../data/reviews';
 import type { Notification } from '../data/notifications';
-import { productApi, authApi, type User } from '../services/api';
+import { productApi, authApi, cartApi, orderApi, wishlistApi, type User, type CartResponse, type Order, type WishlistItem } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type CatalogMode = 'browse' | 'detail';
@@ -25,6 +25,12 @@ interface AppState {
   isLoading: boolean;
   error: string | null;
 
+  // Phase 5: Shopping & Payments State
+  cart: CartResponse | null;
+  cartItemsCount: number;
+  orders: Order[];
+  wishlist: WishlistItem[];
+
   // Catalog State
   catalogMode: CatalogMode;
   currentProductIndex: number;
@@ -38,6 +44,7 @@ interface AppState {
   register: (name: string, email: string, password: string, passwordConfirmation: string, phone?: string, role?: 'buyer' | 'seller') => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  setAuthToken: (token: string) => Promise<void>;
 
   // Actions
   toggleFollow: (userId: string) => void;
@@ -53,6 +60,17 @@ interface AppState {
   goBackFilter: () => void;
   resetFilters: () => void;
   setSelectedMediaIndex: (index: number) => void;
+
+  // Phase 5: Shopping & Payments Actions
+  fetchCart: () => Promise<void>;
+  addToCart: (productId: number, quantity?: number) => Promise<void>;
+  updateCartQuantity: (itemId: number, quantity: number) => Promise<void>;
+  removeFromCart: (itemId: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+  fetchOrders: () => Promise<void>;
+  fetchWishlist: () => Promise<void>;
+  addToWishlist: (productId: number) => Promise<void>;
+  removeFromWishlist: (productId: number) => Promise<void>;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -71,6 +89,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   savedProducts: [],
   isLoading: true,
   error: null,
+
+  // Phase 5 initial state
+  cart: null,
+  cartItemsCount: 0,
+  orders: [],
+  wishlist: [],
 
   // Catalog initial state
   catalogMode: 'browse',
@@ -168,6 +192,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         isAuthenticated: false,
       });
     }
+  },
+
+  setAuthToken: async (token: string) => {
+    await AsyncStorage.setItem('authToken', token);
+    set({ authToken: token });
   },
 
   // Load products from API - PRODUCTION DATA ONLY
@@ -316,4 +345,116 @@ export const useAppStore = create<AppState>((set, get) => ({
     })),
 
   setSelectedMediaIndex: (index) => set({ selectedMediaIndex: index }),
+
+  // Phase 5: Shopping & Payments Actions
+  fetchCart: async () => {
+    const { authToken } = get();
+    if (!authToken) return;
+
+    try {
+      const cartResponse = await cartApi.getCart(authToken);
+      set({
+        cart: cartResponse,
+        cartItemsCount: cartResponse.cart.items.length,
+      });
+    } catch (error) {
+      console.error('Failed to fetch cart:', error);
+    }
+  },
+
+  addToCart: async (productId, quantity = 1) => {
+    const { authToken } = get();
+    if (!authToken) throw new Error('Not authenticated');
+
+    try {
+      await cartApi.addItem(authToken, productId, quantity);
+      await get().fetchCart(); // Refresh cart
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to add to cart');
+    }
+  },
+
+  updateCartQuantity: async (itemId, quantity) => {
+    const { authToken } = get();
+    if (!authToken) return;
+
+    try {
+      await cartApi.updateItem(authToken, itemId, quantity);
+      await get().fetchCart(); // Refresh cart
+    } catch (error) {
+      console.error('Failed to update cart quantity:', error);
+    }
+  },
+
+  removeFromCart: async (itemId) => {
+    const { authToken } = get();
+    if (!authToken) return;
+
+    try {
+      await cartApi.removeItem(authToken, itemId);
+      await get().fetchCart(); // Refresh cart
+    } catch (error) {
+      console.error('Failed to remove from cart:', error);
+    }
+  },
+
+  clearCart: async () => {
+    const { authToken } = get();
+    if (!authToken) return;
+
+    try {
+      await cartApi.clearCart(authToken);
+      set({ cart: null, cartItemsCount: 0 });
+    } catch (error) {
+      console.error('Failed to clear cart:', error);
+    }
+  },
+
+  fetchOrders: async () => {
+    const { authToken } = get();
+    if (!authToken) return;
+
+    try {
+      const response = await orderApi.getOrders(authToken);
+      set({ orders: response.data });
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+    }
+  },
+
+  fetchWishlist: async () => {
+    const { authToken } = get();
+    if (!authToken) return;
+
+    try {
+      const wishlistItems = await wishlistApi.getWishlist(authToken);
+      set({ wishlist: wishlistItems });
+    } catch (error) {
+      console.error('Failed to fetch wishlist:', error);
+    }
+  },
+
+  addToWishlist: async (productId) => {
+    const { authToken } = get();
+    if (!authToken) throw new Error('Not authenticated');
+
+    try {
+      await wishlistApi.addToWishlist(authToken, productId);
+      await get().fetchWishlist(); // Refresh wishlist
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to add to wishlist');
+    }
+  },
+
+  removeFromWishlist: async (productId) => {
+    const { authToken } = get();
+    if (!authToken) return;
+
+    try {
+      await wishlistApi.removeFromWishlist(authToken, productId);
+      await get().fetchWishlist(); // Refresh wishlist
+    } catch (error) {
+      console.error('Failed to remove from wishlist:', error);
+    }
+  },
 }));

@@ -11,10 +11,13 @@ export default function TabLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="seller-dashboard" />
       <Tabs.Screen name="forum" />
+      <Tabs.Screen name="message-detail" />
       <Tabs.Screen name="explore" />
       <Tabs.Screen name="notifications" />
       <Tabs.Screen name="profile" />
       <Tabs.Screen name="upload" />
+      <Tabs.Screen name="cart" />
+      <Tabs.Screen name="wishlist" />
     </Tabs>
   );
 }

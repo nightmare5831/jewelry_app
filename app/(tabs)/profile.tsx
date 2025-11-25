@@ -44,9 +44,15 @@ export default function PerfilScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.push('/(tabs)')}
+        >
+          <Ionicons name="arrow-back" size={24} color="#111827" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Perfil</Text>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color="#ef4444" />
+          <Ionicons name="log-out" size={24} color="#ffffff" />
         </TouchableOpacity>
       </View>
 
@@ -135,6 +141,12 @@ export default function PerfilScreen() {
             <View style={styles.emptyState}>
               <Ionicons name="bag-outline" size={48} color="#d1d5db" />
               <Text style={styles.emptyStateText}>No purchases yet</Text>
+              <TouchableOpacity
+                style={styles.viewOrdersButton}
+                onPress={() => router.push('/orders')}
+              >
+                <Text style={styles.viewOrdersButtonText}>View All Orders</Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -162,17 +174,30 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#111827',
   },
-  logoutButton: {
+  backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#fee2e2',
+    backgroundColor: '#f3f4f6',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  logoutButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#ef4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 5,
   },
   profileSection: {
     backgroundColor: '#ffffff',
@@ -337,5 +362,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     marginTop: 12,
+  },
+  viewOrdersButton: {
+    marginTop: 16,
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  viewOrdersButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

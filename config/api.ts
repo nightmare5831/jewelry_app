@@ -6,7 +6,7 @@ export const API_CONFIG = {
   BASE_URL: Platform.select({
     android: 'https://backend-main-6uoeqs.laravel.cloud/api',
     ios: 'https://backend-main-6uoeqs.laravel.cloud/api',
-    web: 'http://localhost:8000/api',
+    web: 'https://backend-main-6uoeqs.laravel.cloud/api',
     default: 'https://backend-main-6uoeqs.laravel.cloud/api',
   }),
   TIMEOUT: 10000,

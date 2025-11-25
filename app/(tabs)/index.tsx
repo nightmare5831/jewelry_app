@@ -1,9 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppStore } from '../../store/useAppStore';
-import { useEffect, useMemo } from 'react';
-import FABMenu from '../../components/FABMenu';
+import { useEffect, useMemo, useState } from 'react';
+import { router } from 'expo-router';
 
 const GOLDEN_RATIO = 0.618;
 
@@ -24,7 +24,13 @@ export default function CatalogScreen() {
     goBackFilter,
     loadProducts,
     setSelectedMediaIndex,
+    addToCart,
+    authToken,
+    isAuthenticated,
+    cartItemsCount,
   } = useAppStore();
+
+  const [addingToCart, setAddingToCart] = useState(false);
 
   // Load products from API on mount
   useEffect(() => {
@@ -82,9 +88,39 @@ export default function CatalogScreen() {
     setCatalogMode(catalogMode === 'browse' ? 'detail' : 'browse');
   };
 
+  const handleAddToCart = async () => {
+    if (!isAuthenticated || !authToken) {
+      Alert.alert('Login Necessário', 'Por favor, faça login para adicionar produtos ao carrinho', [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Fazer Login', onPress: () => router.push('/auth/login') },
+      ]);
+      return;
+    }
+
+    if (!currentProduct) return;
+
+    setAddingToCart(true);
+    try {
+      await addToCart(parseInt(currentProduct.id), 1);
+      Alert.alert('Sucesso!', 'Produto adicionado ao carrinho', [
+        { text: 'Continuar Comprando', style: 'cancel' },
+        { text: 'Ir para Carrinho', onPress: () => router.push('/(tabs)/cart') },
+      ]);
+    } catch (error: any) {
+      Alert.alert('Erro', error.message || 'Falha ao adicionar ao carrinho');
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
   const handleFilterClick = (filterId: string, filterType?: string) => {
     if (filterType === 'action') {
       // Handle action clicks (wallet, profile)
+      if (filterId === 'wallet') {
+        router.push('/(tabs)/cart');
+      } else if (filterId === 'profile') {
+        router.push('/(tabs)/profile');
+      }
       return;
     }
     selectFilter(filterId);
@@ -244,29 +280,42 @@ export default function CatalogScreen() {
 
             <View style={styles.verticalDivider} />
 
-            {/* RIGHT SECTION - 40% (ALWAYS FIXED: Wallet + Profile) */}
+            {/* RIGHT SECTION - 40% (Wallet + Profile on top, Cart on bottom) */}
             <View style={styles.rightSection}>
 
-              {/* Wallet - Always on top */}
-              <TouchableOpacity
-                style={styles.walletCell}
-                onPress={() => handleFilterClick(walletIcon.id, walletIcon.type)}
-              >
-                <View style={styles.walletIconWide}>
-                  <Ionicons name="wallet-outline" size={42} color="#ffffff" />
-                </View>
-                <Text style={styles.filterLabelAlt}>Carteira</Text>
-              </TouchableOpacity>
+              {/* Top Row: Forum + Profile (FAB style icons) */}
+              <View style={styles.topIconRow}>
+                <TouchableOpacity
+                  style={styles.fabStyleButton}
+                  onPress={() => router.push('/(tabs)/forum')}
+                >
+                  <Ionicons name="chatbubbles" size={24} color="#ffffff" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.fabStyleProfileButton}
+                  onPress={() => router.push('/(tabs)/profile')}
+                >
+                  <Ionicons name="person" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
 
               <View style={styles.horizontalDivider} />
 
-              {/* Profile - Always on bottom (LARGE) */}
+              {/* Bottom: Cart (FAB style, large) */}
               <TouchableOpacity
-                style={styles.profileCell}
-                onPress={() => handleFilterClick(profileIcon.id, profileIcon.type)}
+                style={styles.cartCell}
+                onPress={() => router.push('/(tabs)/cart')}
               >
-                <View style={styles.profileIconLongOval}>
-                  <Ionicons name="person-outline" size={64} color="#ffffff" />
+                <View style={styles.fabStyleCartButton}>
+                  <Ionicons name="cart" size={28} color="#ffffff" />
+                  {cartItemsCount > 0 && (
+                    <View style={styles.cartBadgeInline}>
+                      <Text style={styles.cartBadgeTextInline}>
+                        {cartItemsCount}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               </TouchableOpacity>
 
@@ -320,32 +369,65 @@ export default function CatalogScreen() {
                 <Text style={styles.detailLabel}>Material:</Text>
                 <Text style={styles.detailValue}>Ouro 18k</Text>
               </View>
+
+              {/* Add to Cart Button */}
+              <TouchableOpacity
+                style={[styles.addToCartButton, addingToCart && styles.addToCartButtonDisabled]}
+                onPress={handleAddToCart}
+                disabled={addingToCart}
+              >
+                {addingToCart ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <>
+                    <Ionicons name="cart" size={20} color="#ffffff" />
+                    <Text style={styles.addToCartText}>Adicionar ao Carrinho</Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </ScrollView>
 
             <View style={styles.verticalDivider} />
 
-            {/* RIGHT SECTION - Wallet & Profile still visible */}
+            {/* RIGHT SECTION - Wallet + Profile on top, Cart on bottom */}
             <View style={styles.rightSection}>
-              <TouchableOpacity
-                style={styles.walletCell}
-                onPress={() => handleFilterClick(walletIcon.id, walletIcon.type)}
-              >
-                <View style={styles.walletIconWide}>
-                  <Ionicons name="wallet-outline" size={42} color="#ffffff" />
-                </View>
-                <Text style={styles.filterLabelAlt}>Carteira</Text>
-              </TouchableOpacity>
+
+              {/* Top Row: Forum + Profile (FAB style icons) */}
+              <View style={styles.topIconRow}>
+                <TouchableOpacity
+                  style={styles.fabStyleButton}
+                  onPress={() => router.push('/(tabs)/forum')}
+                >
+                  <Ionicons name="chatbubbles" size={24} color="#ffffff" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.fabStyleProfileButton}
+                  onPress={() => router.push('/(tabs)/profile')}
+                >
+                  <Ionicons name="person" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
 
               <View style={styles.horizontalDivider} />
 
+              {/* Bottom: Cart (FAB style, large) */}
               <TouchableOpacity
-                style={styles.profileCell}
-                onPress={() => handleFilterClick(profileIcon.id, profileIcon.type)}
+                style={styles.cartCell}
+                onPress={() => router.push('/(tabs)/cart')}
               >
-                <View style={styles.profileIconLongOval}>
-                  <Ionicons name="person-outline" size={64} color="#ffffff" />
+                <View style={styles.fabStyleCartButton}>
+                  <Ionicons name="cart" size={28} color="#ffffff" />
+                  {cartItemsCount > 0 && (
+                    <View style={styles.cartBadgeInline}>
+                      <Text style={styles.cartBadgeTextInline}>
+                        {cartItemsCount}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               </TouchableOpacity>
+
             </View>
           </View>
         )}
@@ -362,10 +444,6 @@ export default function CatalogScreen() {
           />
         </TouchableOpacity>
       </View>
-
-      {/* FAB Menu - Forum and Logout */}
-      <FABMenu mode="main" />
-
     </View>
   );
 }
@@ -537,30 +615,49 @@ const styles = StyleSheet.create({
   rightSection: {
     flex: 0.4,
   },
-  walletCell: {
+
+  // Top Icon Row - Forum + Logout horizontal (FAB style)
+  topIconRow: {
     flex: 1,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
     alignItems: 'center',
+    backgroundColor: '#fafafa',
     borderWidth: 0.5,
     borderColor: '#e5e7eb',
-    backgroundColor: '#fafafa',
-    paddingHorizontal: 8,
+    paddingVertical: 8,
   },
-  walletIconWide: {
-    backgroundColor: '#f97316',
-    alignSelf: 'stretch',
+
+  // FAB Style Buttons (matching FABMenu.tsx)
+  fabStyleButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#2563eb',
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 6,
-    paddingVertical: 10,
-    borderRadius: 16,
-    shadowColor: '#f97316',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 5,
   },
-  profileCell: {
+  fabStyleProfileButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#ef4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+
+  // Cart Cell - Large bottom section (FAB style)
+  cartCell: {
     flex: 2,
     justifyContent: 'center',
     alignItems: 'center',
@@ -568,20 +665,38 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     backgroundColor: '#fafafa',
   },
-  profileIconLongOval: {
-    backgroundColor: '#3b82f6',
-    flex: 1,
-    width: '70%',
-    maxWidth: 90,
-    marginVertical: 12,
-    borderRadius: 45,
+  fabStyleCartButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#16a34a',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#3b82f6',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowRadius: 4,
+    elevation: 8,
+    position: 'relative',
+  },
+  cartBadgeInline: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#dc2626',
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  cartBadgeTextInline: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: 'bold',
   },
 
   // DETAIL MODE - Product info
@@ -651,14 +766,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
-  filterLabelAlt: {
-    fontSize: 11,
-    color: '#6b7280',
-    fontWeight: '600',
-    marginTop: 8,
-    letterSpacing: 0.3,
-  },
-
   // Corner Button
   cornerButton: {
     position: 'absolute',
@@ -709,5 +816,33 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+
+  // Add to Cart Button
+  addToCartButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#16a34a',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginTop: 20,
+    marginBottom: 16,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  addToCartButtonDisabled: {
+    backgroundColor: '#9ca3af',
+  },
+  addToCartText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
 });

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import type { Product } from '../../data/products';
@@ -11,8 +11,8 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
-  const { currentUser, toggleSave } = useAppStore();
-  const isSaved = currentUser.savedProducts?.includes(product.id) || false;
+  const { currentUser, toggleSave, addToCart, isAuthenticated } = useAppStore();
+  const isSaved = currentUser?.savedProducts?.includes(product.id) || false;
 
   const shippingInfo = product.shipping?.free
     ? `Free shipping • Arrives in ${product.shipping.days} days`
@@ -25,6 +25,25 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleSave = (e: any) => {
     e.stopPropagation();
     toggleSave(product.id);
+  };
+
+  const handleAddToCart = async (e: any) => {
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      Alert.alert('Login Required', 'Please login to add items to cart', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Login', onPress: () => router.push('/auth/login') },
+      ]);
+      return;
+    }
+
+    try {
+      await addToCart(Number(product.id), 1);
+      Alert.alert('Success', 'Product added to cart');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to add to cart');
+    }
   };
 
   return (
@@ -108,6 +127,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <TouchableOpacity
               className="bg-primary rounded-lg px-4 py-2 active:bg-primary-dark"
               activeOpacity={0.8}
+              onPress={handleAddToCart}
             >
               <Text className="text-white font-semibold text-sm">Add</Text>
             </TouchableOpacity>

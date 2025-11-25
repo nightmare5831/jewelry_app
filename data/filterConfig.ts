@@ -53,33 +53,25 @@ export const filterTree: Record<string, FilterConfig[]> = {
     { id: 'rings', name: 'Anéis', icon: 'ellipse', type: 'category' },
     { id: 'necklaces', name: 'Colares', icon: 'link', type: 'category' },
     { id: 'bracelets', name: 'Pulseiras', icon: 'watch-outline', type: 'category' },
-    { id: 'earrings', name: 'Brincos', icon: 'ear', type: 'category' },
-    { id: 'watches', name: 'Relógios', icon: 'time', type: 'category' },
-    { id: 'chains', name: 'Correntes', icon: 'git-branch', type: 'category' }
+    { id: 'earrings', name: 'Brincos', icon: 'ear', type: 'category' }
   ],
   female: [
     { id: 'rings', name: 'Anéis', icon: 'ellipse', type: 'category' },
     { id: 'necklaces', name: 'Colares', icon: 'link', type: 'category' },
     { id: 'bracelets', name: 'Pulseiras', icon: 'watch-outline', type: 'category' },
-    { id: 'earrings', name: 'Brincos', icon: 'ear', type: 'category' },
-    { id: 'anklets', name: 'Tornozeleiras', icon: 'ellipse-outline', type: 'category' },
-    { id: 'pendants', name: 'Pingentes', icon: 'diamond', type: 'category' }
+    { id: 'earrings', name: 'Brincos', icon: 'ear', type: 'category' }
   ],
   graduation: [
     { id: 'rings', name: 'Anéis', icon: 'ellipse', type: 'category' },
     { id: 'medals', name: 'Medalhas', icon: 'medal', type: 'category' },
     { id: 'pins', name: 'Broches', icon: 'star', type: 'category' },
-    { id: 'cufflinks', name: 'Abotoaduras', icon: 'square', type: 'category' },
-    { id: 'pendants', name: 'Pingentes', icon: 'diamond', type: 'category' },
-    { id: 'sets', name: 'Conjuntos', icon: 'albums', type: 'category' }
+    { id: 'cufflinks', name: 'Abotoaduras', icon: 'square', type: 'category' }
   ],
   wedding: [
     { id: 'rings', name: 'Alianças', icon: 'ellipse', type: 'category' },
     { id: 'sets', name: 'Conjuntos', icon: 'albums', type: 'category' },
     { id: 'tiaras', name: 'Tiaras', icon: 'sunny', type: 'category' },
-    { id: 'bracelets', name: 'Pulseiras', icon: 'watch-outline', type: 'category' },
-    { id: 'earrings', name: 'Brincos', icon: 'ear', type: 'category' },
-    { id: 'necklaces', name: 'Colares', icon: 'link', type: 'category' }
+    { id: 'bracelets', name: 'Pulseiras', icon: 'watch-outline', type: 'category' }
   ]
 };
 
