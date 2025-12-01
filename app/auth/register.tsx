@@ -68,17 +68,18 @@ export default function Register() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Fala Shop</Text>
+          <Text style={styles.title}>Jóia Perfeita</Text>
+          <Text style={styles.subtitle}>Cadastro de novo usuário</Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nome Completo *</Text>
+            <Text style={styles.label}>Nome Completo*</Text>
             <View style={styles.inputContainer}>
-              <Ionicons name="person-outline" size={20} color="#6b7280" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Digite seu nome"
+                placeholder="Digite seu nome completo"
+                placeholderTextColor="#B3B3B3"
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -87,12 +88,12 @@ export default function Register() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Endereço de Email *</Text>
+            <Text style={styles.label}>E-mail*</Text>
             <View style={styles.inputContainer}>
-              <Ionicons name="mail-outline" size={20} color="#6b7280" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Digite seu email"
+                placeholder="Digite seu e-mail"
+                placeholderTextColor="#B3B3B3"
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -103,12 +104,12 @@ export default function Register() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Telefone (Opcional)</Text>
+            <Text style={styles.label}>Telefone</Text>
             <View style={styles.inputContainer}>
-              <Ionicons name="call-outline" size={20} color="#6b7280" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="(00) 00000-0000"
+                placeholderTextColor="#B3B3B3"
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
@@ -118,12 +119,12 @@ export default function Register() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Senha *</Text>
+            <Text style={styles.label}>Senha*</Text>
             <View style={styles.inputContainer}>
-              <Ionicons name="lock-closed-outline" size={20} color="#6b7280" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="Mínimo 8 caracteres"
+                placeholderTextColor="#B3B3B3"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -134,19 +135,18 @@ export default function Register() {
                   name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                   size={20}
                   color="#6b7280"
-                  style={styles.inputIcon}
                 />
               </TouchableOpacity>
             </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Confirmar Senha *</Text>
+            <Text style={styles.label}>Confirmar Senha*</Text>
             <View style={styles.inputContainer}>
-              <Ionicons name="lock-closed-outline" size={20} color="#6b7280" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="Digite a senha novamente"
+                placeholderTextColor="#B3B3B3"
                 value={passwordConfirmation}
                 onChangeText={setPasswordConfirmation}
                 secureTextEntry={!showPasswordConfirmation}
@@ -157,7 +157,6 @@ export default function Register() {
                   name={showPasswordConfirmation ? 'eye-off-outline' : 'eye-outline'}
                   size={20}
                   color="#6b7280"
-                  style={styles.inputIcon}
                 />
               </TouchableOpacity>
             </View>
@@ -204,10 +203,7 @@ export default function Register() {
             {isAuthLoading ? (
               <ActivityIndicator color="white" />
             ) : (
-              <>
-                <Ionicons name="person-add-outline" size={20} color="white" style={styles.buttonIcon} />
-                <Text style={styles.buttonText}>Criar Conta</Text>
-              </>
+              <Text style={styles.buttonText}>Criar Conta</Text>
             )}
           </TouchableOpacity>
 
@@ -228,7 +224,7 @@ export default function Register() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#FFFFFF',
   },
   scrollContent: {
     flexGrow: 1,
@@ -237,53 +233,59 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   logo: {
-    width: 80,
-    height: 80,
-    marginBottom: 8,
+    width: 95,
+    height: 121,
+    marginBottom: 12,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginTop: 16,
+    fontSize: 31.5,
+    fontWeight: '400',
+    color: '#535252',
+    marginTop: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#6b7280',
+    fontSize: 18,
+    fontWeight: '400',
+    color: '#000000',
     marginTop: 8,
   },
   form: {
     width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#D9D9D9',
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 24,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
+    fontSize: 16,
+    fontWeight: '400',
+    color: '#000000',
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: '#D9D9D9',
     borderRadius: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
+    height: 40,
   },
   inputIcon: {
     marginRight: 8,
   },
   input: {
     flex: 1,
-    height: 48,
     fontSize: 16,
-    color: '#111827',
+    color: '#000000',
   },
   roleContainer: {
     flexDirection: 'row',
@@ -294,34 +296,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
-    borderWidth: 2,
-    borderColor: '#d1d5db',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D9D9D9',
     borderRadius: 8,
     padding: 16,
     gap: 8,
   },
   roleButtonActive: {
-    borderColor: '#2563eb',
-    backgroundColor: '#eff6ff',
+    borderColor: '#000000',
+    backgroundColor: '#F5F5F5',
   },
   roleButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '400',
     color: '#6b7280',
   },
   roleButtonTextActive: {
-    color: '#2563eb',
+    color: '#000000',
   },
   button: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#000000',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 48,
-    borderRadius: 8,
+    height: 40,
+    borderRadius: 20,
+    paddingHorizontal: 12,
     marginTop: 8,
-    marginBottom: 24,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -330,14 +332,15 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   buttonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '400',
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 20,
   },
   footerText: {
     fontSize: 14,
@@ -345,7 +348,7 @@ const styles = StyleSheet.create({
   },
   link: {
     fontSize: 14,
-    color: '#2563eb',
+    color: '#000000',
     fontWeight: '600',
   },
 });

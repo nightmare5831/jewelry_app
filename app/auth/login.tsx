@@ -50,17 +50,17 @@ export default function Login() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Fala Shop</Text>
+          <Text style={styles.title}>Jóia Perfeita</Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Endereço de Email</Text>
+            <Text style={styles.label}>E-mail</Text>
             <View style={styles.inputContainer}>
-              <Ionicons name="mail-outline" size={20} color="#6b7280" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Digite seu email"
+                placeholder="Digite seu e-mail"
+                placeholderTextColor="#B3B3B3"
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -73,10 +73,10 @@ export default function Login() {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Senha</Text>
             <View style={styles.inputContainer}>
-              <Ionicons name="lock-closed-outline" size={20} color="#6b7280" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="Digite sua senha"
+                placeholderTextColor="#B3B3B3"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -88,7 +88,6 @@ export default function Login() {
                   name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                   size={20}
                   color="#6b7280"
-                  style={styles.inputIcon}
                 />
               </TouchableOpacity>
             </View>
@@ -114,10 +113,7 @@ export default function Login() {
             {isAuthLoading ? (
               <ActivityIndicator color="white" />
             ) : (
-              <>
-                <Ionicons name="log-in-outline" size={20} color="white" style={styles.buttonIcon} />
-                <Text style={styles.buttonText}>Entrar</Text>
-              </>
+              <Text style={styles.buttonText}>Entrar</Text>
             )}
           </TouchableOpacity>
 
@@ -147,18 +143,18 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: 24,
   },
   logo: {
-    width: 80,
-    height: 80,
-    marginBottom: 8,
+    width: 95,
+    height: 121,
+    marginBottom: 12,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginTop: 16,
+    fontSize: 31.5,
+    fontWeight: '400',
+    color: '#535252',
+    marginTop: 8,
   },
   subtitle: {
     fontSize: 16,
@@ -167,33 +163,38 @@ const styles = StyleSheet.create({
   },
   form: {
     width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#D9D9D9',
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
+    fontSize: 16,
+    fontWeight: '400',
+    color: '#000000',
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: '#D9D9D9',
     borderRadius: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
+    height: 40,
   },
   inputIcon: {
     marginRight: 8,
   },
   input: {
     flex: 1,
-    height: 48,
     fontSize: 16,
-    color: '#111827',
+    color: '#000000',
   },
   rememberContainer: {
     marginBottom: 24,
@@ -205,29 +206,30 @@ const styles = StyleSheet.create({
   checkboxBox: {
     width: 20,
     height: 20,
-    borderWidth: 2,
-    borderColor: '#d1d5db',
+    borderWidth: 1,
+    borderColor: '#D9D9D9',
     borderRadius: 4,
     marginRight: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
   checkboxBoxChecked: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
+    backgroundColor: '#000000',
+    borderColor: '#000000',
   },
   checkboxLabel: {
     fontSize: 14,
-    color: '#374151',
+    color: '#000000',
   },
   button: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#000000',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 48,
-    borderRadius: 8,
-    marginBottom: 24,
+    height: 40,
+    borderRadius: 20,
+    paddingHorizontal: 12,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -236,14 +238,15 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   buttonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '400',
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 20,
   },
   footerText: {
     fontSize: 14,
@@ -251,7 +254,7 @@ const styles = StyleSheet.create({
   },
   link: {
     fontSize: 14,
-    color: '#2563eb',
+    color: '#000000',
     fontWeight: '600',
   },
 });

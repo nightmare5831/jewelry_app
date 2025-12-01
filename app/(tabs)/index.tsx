@@ -28,6 +28,7 @@ export default function CatalogScreen() {
     authToken,
     isAuthenticated,
     cartItemsCount,
+    currentUser,
   } = useAppStore();
 
   const [addingToCart, setAddingToCart] = useState(false);
@@ -123,15 +124,22 @@ export default function CatalogScreen() {
       }
       return;
     }
+    if (filterType === 'back') {
+      // Handle back button
+      goBackFilter();
+      return;
+    }
     selectFilter(filterId);
   };
 
   // Dynamic left 4 icons (change based on filter selection)
-  const leftIcons = currentFilterSet.slice(0, 4);
-
-  // Always fixed: Wallet and Profile on right
-  const walletIcon = { id: 'wallet', name: 'Carteira', icon: 'wallet', type: 'action' };
-  const profileIcon = { id: 'profile', name: 'Perfil', icon: 'person', type: 'action' };
+  // If a category is selected, show back button + 3 subcategories
+  const leftIcons = selectedFilters.length > 0
+    ? [
+        { id: 'back', name: 'Voltar', icon: 'arrow-back', iconType: 'ionicon' as const, type: 'back' },
+        ...currentFilterSet.slice(0, 3)
+      ]
+    : currentFilterSet.slice(0, 4);
 
   return (
     <View style={styles.container}>
@@ -200,22 +208,22 @@ export default function CatalogScreen() {
               </View>
             )}
 
-            {/* Controls: HORIZONTAL - Plus and Arrows on same line */}
+            {/* Controls: HORIZONTAL - 3 Dots and Arrows on same line */}
             <View style={styles.controlsOverlay}>
               <TouchableOpacity style={styles.plusButton} onPress={handlePlusClick}>
                 <Ionicons
-                  name={catalogMode === 'detail' ? 'close' : 'add'}
+                  name={catalogMode === 'detail' ? 'close' : 'ellipsis-horizontal'}
                   size={28}
-                  color="#fff"
+                  color="#000"
                 />
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.arrowButton} onPress={previousProduct}>
-                <Ionicons name="play-back" size={24} color="#000" />
+                <Ionicons name="arrow-back" size={24} color="#000" />
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.arrowButton} onPress={nextProduct}>
-                <Ionicons name="play-forward" size={24} color="#000" />
+                <Ionicons name="arrow-forward" size={24} color="#000" />
               </TouchableOpacity>
             </View>
           </>
@@ -240,7 +248,11 @@ export default function CatalogScreen() {
                   style={styles.peopleCell}
                   onPress={() => handleFilterClick(leftIcons[0].id, leftIcons[0].type)}
                 >
-                  <Ionicons name={leftIcons[0].icon as any} size={56} color="#1f2937" />
+                  {leftIcons[0].iconType === 'image' ? (
+                    <Image source={leftIcons[0].icon as any} style={styles.categoryIconImage} resizeMode="contain" />
+                  ) : (
+                    <Ionicons name={leftIcons[0].icon as any} size={48} color="#1f2937" />
+                  )}
                   <Text style={styles.filterLabel}>{leftIcons[0].name}</Text>
                 </TouchableOpacity>
 
@@ -250,7 +262,11 @@ export default function CatalogScreen() {
                   style={styles.peopleCell}
                   onPress={() => handleFilterClick(leftIcons[1].id, leftIcons[1].type)}
                 >
-                  <Ionicons name={leftIcons[1].icon as any} size={56} color="#1f2937" />
+                  {leftIcons[1].iconType === 'image' ? (
+                    <Image source={leftIcons[1].icon as any} style={styles.categoryIconImage} resizeMode="contain" />
+                  ) : (
+                    <Ionicons name={leftIcons[1].icon as any} size={48} color="#1f2937" />
+                  )}
                   <Text style={styles.filterLabel}>{leftIcons[1].name}</Text>
                 </TouchableOpacity>
               </View>
@@ -262,7 +278,11 @@ export default function CatalogScreen() {
                   style={styles.peopleCell}
                   onPress={() => handleFilterClick(leftIcons[2].id, leftIcons[2].type)}
                 >
-                  <Ionicons name={leftIcons[2].icon as any} size={56} color="#1f2937" />
+                  {leftIcons[2].iconType === 'image' ? (
+                    <Image source={leftIcons[2].icon as any} style={styles.categoryIconImage} resizeMode="contain" />
+                  ) : (
+                    <Ionicons name={leftIcons[2].icon as any} size={48} color="#1f2937" />
+                  )}
                   <Text style={styles.filterLabel}>{leftIcons[2].name}</Text>
                 </TouchableOpacity>
 
@@ -272,7 +292,11 @@ export default function CatalogScreen() {
                   style={styles.peopleCell}
                   onPress={() => handleFilterClick(leftIcons[3].id, leftIcons[3].type)}
                 >
-                  <Ionicons name={leftIcons[3].icon as any} size={56} color="#1f2937" />
+                  {leftIcons[3].iconType === 'image' ? (
+                    <Image source={leftIcons[3].icon as any} style={styles.categoryIconImage} resizeMode="contain" />
+                  ) : (
+                    <Ionicons name={leftIcons[3].icon as any} size={48} color="#1f2937" />
+                  )}
                   <Text style={styles.filterLabel}>{leftIcons[3].name}</Text>
                 </TouchableOpacity>
               </View>
@@ -283,40 +307,53 @@ export default function CatalogScreen() {
             {/* RIGHT SECTION - 40% (Wallet + Profile on top, Cart on bottom) */}
             <View style={styles.rightSection}>
 
-              {/* Top Row: Forum + Profile (FAB style icons) */}
-              <View style={styles.topIconRow}>
-                <TouchableOpacity
-                  style={styles.fabStyleButton}
-                  onPress={() => router.push('/(tabs)/forum')}
-                >
-                  <Ionicons name="chatbubbles" size={24} color="#ffffff" />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.fabStyleProfileButton}
-                  onPress={() => router.push('/(tabs)/profile')}
-                >
-                  <Ionicons name="person" size={24} color="#ffffff" />
-                </TouchableOpacity>
-              </View>
+              {/* Top Row: User Profile */}
+              <TouchableOpacity
+                style={styles.topIconRow}
+                onPress={() => router.push('/(tabs)/profile')}
+              >
+                {currentUser ? (
+                  <>
+                    {currentUser.avatar ? (
+                      <Image
+                        source={{ uri: currentUser.avatar }}
+                        style={styles.userAvatar}
+                      />
+                    ) : (
+                      <View style={styles.userAvatarPlaceholder}>
+                        <Text style={styles.userInitial}>
+                          {currentUser.name.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                    <Text style={styles.userName} numberOfLines={2}>
+                      {currentUser.name}
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <View style={styles.userAvatarPlaceholder}>
+                      <Ionicons name="person" size={24} color="#9ca3af" />
+                    </View>
+                    <Text style={styles.userName}>Visitante</Text>
+                  </>
+                )}
+              </TouchableOpacity>
 
               <View style={styles.horizontalDivider} />
 
-              {/* Bottom: Cart (FAB style, large) */}
+              {/* Bottom: Wishlist */}
               <TouchableOpacity
                 style={styles.cartCell}
                 onPress={() => router.push('/(tabs)/cart')}
               >
-                <View style={styles.fabStyleCartButton}>
-                  <Ionicons name="cart" size={28} color="#ffffff" />
-                  {cartItemsCount > 0 && (
-                    <View style={styles.cartBadgeInline}>
-                      <Text style={styles.cartBadgeTextInline}>
-                        {cartItemsCount}
-                      </Text>
-                    </View>
-                  )}
+                <Image source={require('../../assets/wishes.png')} style={styles.wishesIconLarge} resizeMode="contain" />
+                <View style={styles.wishesCountBadge}>
+                  <Text style={styles.wishesCountText}>
+                    {cartItemsCount}
+                  </Text>
                 </View>
+                <Text style={styles.wishesLabel}>Desejos</Text>
               </TouchableOpacity>
 
             </View>
@@ -392,57 +429,59 @@ export default function CatalogScreen() {
             {/* RIGHT SECTION - Wallet + Profile on top, Cart on bottom */}
             <View style={styles.rightSection}>
 
-              {/* Top Row: Forum + Profile (FAB style icons) */}
-              <View style={styles.topIconRow}>
-                <TouchableOpacity
-                  style={styles.fabStyleButton}
-                  onPress={() => router.push('/(tabs)/forum')}
-                >
-                  <Ionicons name="chatbubbles" size={24} color="#ffffff" />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.fabStyleProfileButton}
-                  onPress={() => router.push('/(tabs)/profile')}
-                >
-                  <Ionicons name="person" size={24} color="#ffffff" />
-                </TouchableOpacity>
-              </View>
+              {/* Top Row: User Profile */}
+              <TouchableOpacity
+                style={styles.topIconRow}
+                onPress={() => router.push('/(tabs)/profile')}
+              >
+                {currentUser ? (
+                  <>
+                    {currentUser.avatar ? (
+                      <Image
+                        source={{ uri: currentUser.avatar }}
+                        style={styles.userAvatar}
+                      />
+                    ) : (
+                      <View style={styles.userAvatarPlaceholder}>
+                        <Text style={styles.userInitial}>
+                          {currentUser.name.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                    <Text style={styles.userName} numberOfLines={2}>
+                      {currentUser.name}
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <View style={styles.userAvatarPlaceholder}>
+                      <Ionicons name="person" size={24} color="#9ca3af" />
+                    </View>
+                    <Text style={styles.userName}>Visitante</Text>
+                  </>
+                )}
+              </TouchableOpacity>
 
               <View style={styles.horizontalDivider} />
 
-              {/* Bottom: Cart (FAB style, large) */}
+              {/* Bottom: Wishlist */}
               <TouchableOpacity
                 style={styles.cartCell}
                 onPress={() => router.push('/(tabs)/cart')}
               >
-                <View style={styles.fabStyleCartButton}>
-                  <Ionicons name="cart" size={28} color="#ffffff" />
-                  {cartItemsCount > 0 && (
-                    <View style={styles.cartBadgeInline}>
-                      <Text style={styles.cartBadgeTextInline}>
-                        {cartItemsCount}
-                      </Text>
-                    </View>
-                  )}
+                <Image source={require('../../assets/wishes.png')} style={styles.wishesIconLarge} resizeMode="contain" />
+                <View style={styles.wishesCountBadge}>
+                  <Text style={styles.wishesCountText}>
+                    {cartItemsCount}
+                  </Text>
                 </View>
+                <Text style={styles.wishesLabel}>Desejos</Text>
               </TouchableOpacity>
 
             </View>
           </View>
         )}
 
-        {/* Bottom Left Corner - Filter/Back Button */}
-        <TouchableOpacity
-          style={styles.cornerButton}
-          onPress={selectedFilters.length > 0 ? goBackFilter : () => {}}
-        >
-          <Ionicons
-            name={selectedFilters.length > 0 ? 'arrow-back' : 'options-outline'}
-            size={24}
-            color="#1f2937"
-          />
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -552,17 +591,17 @@ const styles = StyleSheet.create({
   },
 
   plusButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#1f2937',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
   },
 
   arrowButton: {
@@ -616,16 +655,17 @@ const styles = StyleSheet.create({
     flex: 0.4,
   },
 
-  // Top Icon Row - Forum + Logout horizontal (FAB style)
+  // Top Icon Row - User Profile
   topIconRow: {
     flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
+    flexDirection: 'column',
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fafafa',
     borderWidth: 0.5,
     borderColor: '#e5e7eb',
-    paddingVertical: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
   },
 
   // FAB Style Buttons (matching FABMenu.tsx)
@@ -766,24 +806,72 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
-  // Corner Button
-  cornerButton: {
-    position: 'absolute',
-    bottom: 12,
-    left: 12,
+  categoryIconImage: {
+    width: 48,
+    height: 48,
+  },
+  wishesIcon: {
+    width: 32,
+    height: 32,
+    tintColor: '#ffffff',
+  },
+  wishesIconLarge: {
+    width: 48,
+    height: 48,
+  },
+  wishesCountBadge: {
+    backgroundColor: '#000000',
+    borderRadius: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    marginTop: 8,
+    minWidth: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  wishesCountText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  wishesLabel: {
+    fontSize: 11,
+    color: '#1f2937',
+    fontWeight: '700',
+    marginTop: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  userAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+  },
+  userAvatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#f3f4f6',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-    borderWidth: 0.5,
+    borderWidth: 2,
     borderColor: '#e5e7eb',
+  },
+  userName: {
+    fontSize: 11,
+    color: '#1f2937',
+    fontWeight: '700',
+    marginTop: 6,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  userInitial: {
+    fontSize: 20,
+    color: '#1f2937',
+    fontWeight: '700',
   },
 
   // Loading state

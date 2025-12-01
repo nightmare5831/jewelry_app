@@ -2,6 +2,7 @@ export interface FilterConfig {
   id: string;
   name: string;
   icon: string;
+  iconType?: 'ionicon' | 'image';
   type?: 'category' | 'action';
   subFilters?: FilterConfig[];
 }
@@ -11,28 +12,32 @@ export const filterTree: Record<string, FilterConfig[]> = {
     {
       id: 'male',
       name: 'Masculino',
-      icon: 'man-outline',
+      icon: require('../assets/man.png'),
+      iconType: 'image',
       type: 'category',
       subFilters: []
     },
     {
       id: 'female',
       name: 'Feminino',
-      icon: 'woman-outline',
+      icon: require('../assets/woman.png'),
+      iconType: 'image',
       type: 'category',
       subFilters: []
     },
     {
       id: 'graduation',
       name: 'Formatura',
-      icon: 'school-outline',
+      icon: require('../assets/fomat.png'),
+      iconType: 'image',
       type: 'category',
       subFilters: []
     },
     {
       id: 'wedding',
       name: 'Casamento',
-      icon: 'heart-outline',
+      icon: require('../assets/marriage.png'),
+      iconType: 'image',
       type: 'category',
       subFilters: []
     },
@@ -50,28 +55,24 @@ export const filterTree: Record<string, FilterConfig[]> = {
     }
   ],
   male: [
-    { id: 'rings', name: 'Anéis', icon: 'ellipse', type: 'category' },
-    { id: 'necklaces', name: 'Colares', icon: 'link', type: 'category' },
-    { id: 'bracelets', name: 'Pulseiras', icon: 'watch-outline', type: 'category' },
-    { id: 'earrings', name: 'Brincos', icon: 'ear', type: 'category' }
+    { id: 'rings', name: 'Anéis', icon: require('../assets/icon.png'), iconType: 'image', type: 'category' },
+    { id: 'necklaces', name: 'Colares', icon: require('../assets/icon.png'), iconType: 'image', type: 'category' },
+    { id: 'bracelets', name: 'Pulseiras', icon: require('../assets/icon.png'), iconType: 'image', type: 'category' }
   ],
   female: [
-    { id: 'rings', name: 'Anéis', icon: 'ellipse', type: 'category' },
-    { id: 'necklaces', name: 'Colares', icon: 'link', type: 'category' },
-    { id: 'bracelets', name: 'Pulseiras', icon: 'watch-outline', type: 'category' },
-    { id: 'earrings', name: 'Brincos', icon: 'ear', type: 'category' }
+    { id: 'rings', name: 'Anéis', icon: require('../assets/icon.png'), iconType: 'image', type: 'category' },
+    { id: 'necklaces', name: 'Colares', icon: require('../assets/icon.png'), iconType: 'image', type: 'category' },
+    { id: 'bracelets', name: 'Pulseiras', icon: require('../assets/icon.png'), iconType: 'image', type: 'category' }
   ],
   graduation: [
-    { id: 'rings', name: 'Anéis', icon: 'ellipse', type: 'category' },
-    { id: 'medals', name: 'Medalhas', icon: 'medal', type: 'category' },
-    { id: 'pins', name: 'Broches', icon: 'star', type: 'category' },
-    { id: 'cufflinks', name: 'Abotoaduras', icon: 'square', type: 'category' }
+    { id: 'rings', name: 'Anéis', icon: require('../assets/icon.png'), iconType: 'image', type: 'category' },
+    { id: 'medals', name: 'Medalhas', icon: require('../assets/icon.png'), iconType: 'image', type: 'category' },
+    { id: 'pins', name: 'Broches', icon: require('../assets/icon.png'), iconType: 'image', type: 'category' }
   ],
   wedding: [
-    { id: 'rings', name: 'Alianças', icon: 'ellipse', type: 'category' },
-    { id: 'sets', name: 'Conjuntos', icon: 'albums', type: 'category' },
-    { id: 'tiaras', name: 'Tiaras', icon: 'sunny', type: 'category' },
-    { id: 'bracelets', name: 'Pulseiras', icon: 'watch-outline', type: 'category' }
+    { id: 'rings', name: 'Alianças', icon: require('../assets/icon.png'), iconType: 'image', type: 'category' },
+    { id: 'sets', name: 'Conjuntos', icon: require('../assets/icon.png'), iconType: 'image', type: 'category' },
+    { id: 'tiaras', name: 'Tiaras', icon: require('../assets/icon.png'), iconType: 'image', type: 'category' }
   ]
 };
 

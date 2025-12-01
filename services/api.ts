@@ -24,6 +24,7 @@ export interface User {
   email: string;
   phone?: string;
   role: 'buyer' | 'seller' | 'admin';
+  avatar?: string;
 }
 
 interface LoginResponse {
