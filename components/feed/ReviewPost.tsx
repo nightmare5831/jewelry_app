@@ -30,10 +30,6 @@ export default function ReviewPost({ review }: ReviewPostProps) {
     }
   };
 
-  const handleProductPress = () => {
-    router.push(`/product/${review.productId}`);
-  };
-
   const handleUserPress = () => {
     // Navigate to user profile
     console.log('Navigate to user:', review.userId);
@@ -128,11 +124,7 @@ export default function ReviewPost({ review }: ReviewPostProps) {
         </Text>
 
         {/* Product Reference */}
-        <TouchableOpacity
-          onPress={handleProductPress}
-          className="bg-gray-50 rounded-lg p-3 mb-3 border border-gray-200"
-          activeOpacity={0.7}
-        >
+        <View className="bg-gray-50 rounded-lg p-3 mb-3 border border-gray-200">
           <View className="flex-row items-center">
             <Image
               source={{ uri: review.productImage }}
@@ -147,9 +139,8 @@ export default function ReviewPost({ review }: ReviewPostProps) {
                 R$ {review.productPrice.toFixed(2)}
               </Text>
             </View>
-            <Text className="text-gray-400">→</Text>
           </View>
-        </TouchableOpacity>
+        </View>
 
         {/* Actions */}
         <View className="flex-row items-center justify-between pt-2 border-t border-gray-100">

@@ -9,7 +9,7 @@
     "scheme": "fala",
     "newArchEnabled": false,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -25,7 +25,7 @@
       "package": "com.yourcompany.falashop"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/splash.png"
     },
     "plugins": [
       "expo-router",

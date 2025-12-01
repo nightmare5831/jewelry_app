@@ -88,10 +88,7 @@ export default function WishlistScreen() {
         <View style={styles.grid}>
           {wishlist.map((item) => (
             <View key={item.id} style={styles.productCard}>
-              <TouchableOpacity
-                onPress={() => router.push(`/product/${item.product_id}`)}
-                style={styles.imageContainer}
-              >
+              <View style={styles.imageContainer}>
                 <Image
                   source={{ uri: item.product?.thumbnail || item.product?.images?.[0] || 'https://via.placeholder.com/150' }}
                   style={styles.productImage}
@@ -102,7 +99,7 @@ export default function WishlistScreen() {
                 >
                   <Ionicons name="heart" size={24} color="#D4AF37" />
                 </TouchableOpacity>
-              </TouchableOpacity>
+              </View>
 
               <View style={styles.productInfo}>
                 <Text style={styles.productName} numberOfLines={2}>

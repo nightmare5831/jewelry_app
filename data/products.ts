@@ -20,6 +20,16 @@ export interface Product {
   model3dUrl?: string;
   model3dType?: 'glb' | 'obj' | 'stl';
   videos?: string[];
+  // Seller information
+  seller?: {
+    name: string;
+    rating?: number;
+  };
+  // Product properties
+  material?: string;
+  gold_karat?: string;
+  gold_weight_grams?: number;
+  properties?: Record<string, string>;
 }
 
 export const categories = [

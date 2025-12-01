@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAppStore } from '../../store/useAppStore';
 import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
+import ProductDetailContent from '../../components/product/ProductDetailContent';
 
 const GOLDEN_RATIO = 0.618;
 
@@ -25,8 +26,8 @@ export default function CatalogScreen() {
     loadProducts,
     setSelectedMediaIndex,
     addToCart,
-    authToken,
     isAuthenticated,
+    authToken,
     cartItemsCount,
     currentUser,
   } = useAppStore();
@@ -132,7 +133,6 @@ export default function CatalogScreen() {
     selectFilter(filterId);
   };
 
-  // Dynamic left 4 icons (change based on filter selection)
   // If a category is selected, show back button + 3 subcategories
   const leftIcons = selectedFilters.length > 0
     ? [
@@ -170,7 +170,7 @@ export default function CatalogScreen() {
                     <Image
                       source={{ uri: mediaItems[selectedMediaIndex].url }}
                       style={styles.mainMedia}
-                      resizeMode="contain"
+                      resizeMode="cover"
                     />
                   )}
                   {mediaItems[selectedMediaIndex]?.type === 'video' && (
@@ -360,126 +360,15 @@ export default function CatalogScreen() {
 
           </View>
         ) : (
-          /* DETAIL MODE: Show product info */
-          <View style={styles.productDetailGrid}>
-            <ScrollView style={styles.detailInfoSection} showsVerticalScrollIndicator={false}>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Nome:</Text>
-                <Text style={styles.detailValue}>{currentProduct?.name}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Preço:</Text>
-                <Text style={styles.detailPrice}>R$ {currentProduct?.price.toFixed(2)}</Text>
-                {currentProduct?.originalPrice && (
-                  <Text style={styles.detailOriginalPrice}>
-                    R$ {currentProduct.originalPrice.toFixed(2)}
-                  </Text>
-                )}
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Categoria:</Text>
-                <Text style={styles.detailValue}>
-                  {currentProduct?.category}
-                  {currentProduct?.subcategory && ` / ${currentProduct.subcategory}`}
-                </Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Avaliação:</Text>
-                <View style={styles.ratingRow}>
-                  <Ionicons name="star" size={16} color="#f59e0b" />
-                  <Text style={styles.detailValue}>
-                    {currentProduct?.rating} ({currentProduct?.reviewCount} avaliações)
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Descrição:</Text>
-                <Text style={styles.detailValue}>{currentProduct?.description}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Frete:</Text>
-                <Text style={styles.detailValue}>
-                  {currentProduct?.shipping.free ? 'Grátis' : `R$ 15.00`} - {currentProduct?.shipping.days} dias
-                </Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Material:</Text>
-                <Text style={styles.detailValue}>Ouro 18k</Text>
-              </View>
-
-              {/* Add to Cart Button */}
-              <TouchableOpacity
-                style={[styles.addToCartButton, addingToCart && styles.addToCartButtonDisabled]}
-                onPress={handleAddToCart}
-                disabled={addingToCart}
-              >
-                {addingToCart ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
-                ) : (
-                  <>
-                    <Ionicons name="cart" size={20} color="#ffffff" />
-                    <Text style={styles.addToCartText}>Adicionar ao Carrinho</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </ScrollView>
-
-            <View style={styles.verticalDivider} />
-
-            {/* RIGHT SECTION - Wallet + Profile on top, Cart on bottom */}
-            <View style={styles.rightSection}>
-
-              {/* Top Row: User Profile */}
-              <TouchableOpacity
-                style={styles.topIconRow}
-                onPress={() => router.push('/(tabs)/profile')}
-              >
-                {currentUser ? (
-                  <>
-                    {currentUser.avatar ? (
-                      <Image
-                        source={{ uri: currentUser.avatar }}
-                        style={styles.userAvatar}
-                      />
-                    ) : (
-                      <View style={styles.userAvatarPlaceholder}>
-                        <Text style={styles.userInitial}>
-                          {currentUser.name.charAt(0).toUpperCase()}
-                        </Text>
-                      </View>
-                    )}
-                    <Text style={styles.userName} numberOfLines={2}>
-                      {currentUser.name}
-                    </Text>
-                  </>
-                ) : (
-                  <>
-                    <View style={styles.userAvatarPlaceholder}>
-                      <Ionicons name="person" size={24} color="#9ca3af" />
-                    </View>
-                    <Text style={styles.userName}>Visitante</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-
-              <View style={styles.horizontalDivider} />
-
-              {/* Bottom: Wishlist */}
-              <TouchableOpacity
-                style={styles.cartCell}
-                onPress={() => router.push('/(tabs)/cart')}
-              >
-                <Image source={require('../../assets/wishes.png')} style={styles.wishesIconLarge} resizeMode="contain" />
-                <View style={styles.wishesCountBadge}>
-                  <Text style={styles.wishesCountText}>
-                    {cartItemsCount}
-                  </Text>
-                </View>
-                <Text style={styles.wishesLabel}>Desejos</Text>
-              </TouchableOpacity>
-
-            </View>
-          </View>
+          /* DETAIL MODE: Show product detail component */
+          <ScrollView style={styles.detailScrollView} showsVerticalScrollIndicator={false}>
+            <ProductDetailContent
+              product={currentProduct}
+              compact={true}
+              onAddToCart={handleAddToCart}
+              isAddingToCart={addingToCart}
+            />
+          </ScrollView>
         )}
 
       </View>
@@ -520,13 +409,13 @@ const styles = StyleSheet.create({
   // Media Viewer (Detail Mode)
   mediaViewerContainer: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#ffffff',
   },
   mainViewer: {
-    flex: 0.7,
+    flex: 0.75,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
+    backgroundColor: '#ffffff',
   },
   mainMedia: {
     width: '100%',
@@ -548,9 +437,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   thumbnailSlider: {
-    flex: 0.3,
-    backgroundColor: '#111',
-    paddingVertical: 12,
+    flex: 0.25,
+    backgroundColor: '#f9fafb',
+    paddingVertical: 6,
     paddingHorizontal: 8,
   },
   thumbnailItem: {
@@ -627,6 +516,10 @@ const styles = StyleSheet.create({
   filterSection: {
     flex: 1 - GOLDEN_RATIO,
     backgroundColor: '#ffffff',
+  },
+  detailScrollView: {
+    flex: 1,
+    backgroundColor: '#fafafa',
   },
   filterGrid: {
     flex: 1,
@@ -746,6 +639,11 @@ const styles = StyleSheet.create({
   },
   detailInfoSection: {
     flex: 0.6,
+    padding: 16,
+    backgroundColor: '#fafafa',
+  },
+  detailInfoSectionFullWidth: {
+    flex: 1,
     padding: 16,
     backgroundColor: '#fafafa',
   },

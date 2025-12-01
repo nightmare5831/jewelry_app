@@ -18,10 +18,6 @@ export default function ProductCard({ product }: ProductCardProps) {
     ? `Free shipping • Arrives in ${product.shipping.days} days`
     : `Shipping • Arrives in ${product.shipping?.days || 5} days`;
 
-  const handlePress = () => {
-    router.push(`/product/${product.id}`);
-  };
-
   const handleSave = (e: any) => {
     e.stopPropagation();
     toggleSave(product.id);
@@ -47,8 +43,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.95}>
-      <View className="mx-4 my-3 bg-white rounded-2xl overflow-hidden" style={{
+    <View className="mx-4 my-3 bg-white rounded-2xl overflow-hidden" style={{
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
@@ -143,6 +138,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
