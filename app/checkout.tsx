@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { orderApi, type ShippingAddress } from '../services/api';
 
 export default function CheckoutScreen() {
-  const { cart, authToken, fetchCart, fetchOrders } = useAppStore();
+  const { cart, authToken, isAuthenticated, fetchCart, fetchOrders } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'credit_card' | 'boleto'>('credit_card');
 
@@ -17,6 +17,43 @@ export default function CheckoutScreen() {
     postal_code: '',
     country: 'Brazil',
   });
+
+  // Require authentication for checkout
+  if (!isAuthenticated || !authToken) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#111827" />
+          </TouchableOpacity>
+          <Text style={styles.header}>Checkout</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={styles.emptyContainer}>
+          <Ionicons name="lock-closed-outline" size={80} color="#3b82f6" />
+          <Text style={styles.emptyTitle}>Faça login para continuar</Text>
+          <Text style={styles.emptySubtitle}>
+            Você precisa estar logado para finalizar sua compra
+          </Text>
+          <TouchableOpacity
+            style={styles.shopButton}
+            onPress={() => router.push('/auth/login')}
+          >
+            <Text style={styles.shopButtonText}>Entrar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.secondaryShopButton}
+            onPress={() => router.push('/auth/register')}
+          >
+            <Text style={styles.secondaryShopButtonText}>Criar conta</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   if (!cart || cart.cart.items.length === 0) {
     return (
@@ -366,17 +403,42 @@ const styles = StyleSheet.create({
     marginTop: 16,
     color: '#333',
   },
+  emptySubtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 8,
+    textAlign: 'center',
+    paddingHorizontal: 32,
+  },
   shopButton: {
     marginTop: 24,
     backgroundColor: '#D4AF37',
     paddingHorizontal: 32,
     paddingVertical: 12,
     borderRadius: 8,
+    minWidth: 200,
   },
   shopButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  secondaryShopButton: {
+    marginTop: 12,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#D4AF37',
+    minWidth: 200,
+  },
+  secondaryShopButtonText: {
+    color: '#D4AF37',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   footer: {
     backgroundColor: '#fff',

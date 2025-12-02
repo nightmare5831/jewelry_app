@@ -365,13 +365,35 @@ export default function CatalogScreen() {
             <ProductDetailContent
               product={currentProduct}
               compact={true}
-              onAddToCart={handleAddToCart}
-              isAddingToCart={addingToCart}
             />
           </ScrollView>
         )}
 
       </View>
+
+      {/* Sticky Add to Cart Button - Only visible in detail mode */}
+      {catalogMode === 'detail' && currentProduct && (
+        <View style={styles.stickyButtonContainer}>
+          <LinearGradient
+            colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 1)']}
+            style={styles.gradientBackground}
+          />
+          <TouchableOpacity
+            style={[styles.stickyAddToCartButton, addingToCart && styles.stickyAddToCartButtonDisabled]}
+            onPress={handleAddToCart}
+            disabled={addingToCart}
+          >
+            {addingToCart ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
+              <>
+                <Ionicons name="cart" size={20} color="#ffffff" />
+                <Text style={styles.stickyAddToCartText}>Adicionar ao carrinho</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -811,11 +833,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#16a34a',
     paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    paddingHorizontal: 18,
+    borderRadius: 50,
     marginTop: 20,
     marginBottom: 16,
-    gap: 8,
+    gap: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -830,5 +852,46 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.3,
+  },
+
+  // Sticky Add to Cart Button
+  stickyButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingBottom: 10,
+    paddingHorizontal: 10,
+    paddingTop: 20,
+  },
+  gradientBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  stickyAddToCartButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#000000',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    gap: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  stickyAddToCartButtonDisabled: {
+    backgroundColor: '#666',
+  },
+  stickyAddToCartText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

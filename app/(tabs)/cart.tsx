@@ -23,15 +23,33 @@ export default function CartScreen() {
   if (!isAuthenticated) {
     return (
       <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.push('/(tabs)')}
+          >
+            <Ionicons name="arrow-back" size={24} color="#111827" />
+          </TouchableOpacity>
+          <Text style={styles.header}>Carrinho</Text>
+          <View style={{ width: 40 }} />
+        </View>
         <View style={styles.emptyContainer}>
           <Ionicons name="cart-outline" size={80} color="#ccc" />
-          <Text style={styles.emptyTitle}>Login Required</Text>
-          <Text style={styles.emptyText}>Please login to view your cart</Text>
+          <Text style={styles.emptyTitle}>Faça login para ver seu carrinho</Text>
+          <Text style={styles.emptyText}>
+            Entre na sua conta para adicionar produtos e gerenciar seu carrinho
+          </Text>
           <TouchableOpacity
             style={styles.loginButton}
             onPress={() => router.push('/auth/login')}
           >
-            <Text style={styles.loginButtonText}>Login</Text>
+            <Text style={styles.loginButtonText}>Entrar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.registerButton}
+            onPress={() => router.push('/auth/register')}
+          >
+            <Text style={styles.registerButtonText}>Criar conta</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -232,13 +250,27 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginTop: 24,
-    backgroundColor: '#333',
+    backgroundColor: '#D4AF37',
     paddingHorizontal: 32,
     paddingVertical: 12,
     borderRadius: 8,
   },
   loginButtonText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  registerButton: {
+    marginTop: 12,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#D4AF37',
+  },
+  registerButtonText: {
+    color: '#D4AF37',
     fontSize: 16,
     fontWeight: 'bold',
   },

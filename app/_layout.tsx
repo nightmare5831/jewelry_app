@@ -19,10 +19,8 @@ export default function RootLayout() {
     const inTabsGroup = segments[0] === '(tabs)';
     const { currentUser } = useAppStore.getState();
 
-    if (!isAuthenticated && !inAuthGroup) {
-      // Redirect to login if not authenticated
-      router.replace('/auth/login');
-    } else if (isAuthenticated && inAuthGroup) {
+    // Allow guest browsing - only redirect authenticated users from auth pages
+    if (isAuthenticated && inAuthGroup) {
       // Redirect based on user role after login
       if (currentUser?.role === 'seller') {
         router.replace('/(tabs)/seller-dashboard');

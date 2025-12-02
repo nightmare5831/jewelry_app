@@ -42,15 +42,33 @@ export default function WishlistScreen() {
   if (!isAuthenticated) {
     return (
       <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.push('/(tabs)')}
+          >
+            <Ionicons name="arrow-back" size={24} color="#111827" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Lista de Desejos</Text>
+          <View style={{ width: 40 }} />
+        </View>
         <View style={styles.emptyContainer}>
           <Ionicons name="heart-outline" size={80} color="#ccc" />
-          <Text style={styles.emptyTitle}>Login Required</Text>
-          <Text style={styles.emptyText}>Please login to view your wishlist</Text>
+          <Text style={styles.emptyTitle}>Faça login para ver seus favoritos</Text>
+          <Text style={styles.emptyText}>
+            Entre na sua conta para salvar produtos e acessar sua lista de desejos
+          </Text>
           <TouchableOpacity
             style={styles.loginButton}
             onPress={() => router.push('/auth/login')}
           >
-            <Text style={styles.loginButtonText}>Login</Text>
+            <Text style={styles.loginButtonText}>Entrar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.registerButton}
+            onPress={() => router.push('/auth/register')}
+          >
+            <Text style={styles.registerButtonText}>Criar conta</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -131,10 +149,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
-    fontSize: 24,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  headerTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    padding: 16,
-    backgroundColor: '#fff',
+    color: '#111827',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollView: {
     flex: 1,
@@ -172,13 +210,27 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginTop: 24,
-    backgroundColor: '#333',
+    backgroundColor: '#D4AF37',
     paddingHorizontal: 32,
     paddingVertical: 12,
     borderRadius: 8,
   },
   loginButtonText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  registerButton: {
+    marginTop: 12,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#D4AF37',
+  },
+  registerButtonText: {
+    color: '#D4AF37',
     fontSize: 16,
     fontWeight: 'bold',
   },

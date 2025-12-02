@@ -1,8 +1,7 @@
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { router } from 'expo-router';
 
 interface Product {
   id: string;
@@ -24,11 +23,9 @@ interface Product {
 interface ProductDetailContentProps {
   product: Product;
   compact?: boolean; // For showing in index page detail mode
-  onAddToCart?: () => void;
-  isAddingToCart?: boolean;
 }
 
-export default function ProductDetailContent({ product, compact = false, onAddToCart, isAddingToCart = false }: ProductDetailContentProps) {
+export default function ProductDetailContent({ product, compact = false }: ProductDetailContentProps) {
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
     questions: false,
     reviews: false,
@@ -179,23 +176,7 @@ export default function ProductDetailContent({ product, compact = false, onAddTo
         <View style={styles.divider} />
       </View>
 
-      {/* 10. Add to Cart Button */}
-      {onAddToCart && (
-        <TouchableOpacity
-          style={[styles.addToCartButton, isAddingToCart && styles.addToCartButtonDisabled]}
-          onPress={onAddToCart}
-          disabled={isAddingToCart}
-        >
-          {isAddingToCart ? (
-            <ActivityIndicator size="small" color="#ffffff" />
-          ) : (
-            <>
-              <Ionicons name="cart" size={20} color="#ffffff" />
-              <Text style={styles.addToCartText}>Adicionar ao carrinho</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      )}
+      {/* Add to Cart button moved to sticky footer in index.tsx */}
     </View>
   );
 }
@@ -360,25 +341,5 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: 14,
     color: '#666',
-  },
-  addToCartButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#000000',
-    paddingVertical: 16,
-    paddingHorizontal: 28,
-    borderRadius: 20,
-    marginTop: 20,
-    marginBottom: 16,
-    gap: 8,
-  },
-  addToCartButtonDisabled: {
-    backgroundColor: '#666',
-  },
-  addToCartText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '700',
   },
 });
