@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { router } from 'expo-router';
 
 interface Product {
   id: string;
@@ -27,7 +28,6 @@ interface ProductDetailContentProps {
 
 export default function ProductDetailContent({ product, compact = false }: ProductDetailContentProps) {
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
-    questions: false,
     reviews: false,
   });
 
@@ -129,26 +129,18 @@ export default function ProductDetailContent({ product, compact = false }: Produ
       <View style={styles.expandableContainer}>
         <View style={styles.divider} />
 
-        {/* Questions Section */}
+        {/* Questions Section - Navigate to Forum */}
         <TouchableOpacity
           style={styles.expandableHeader}
-          onPress={() => toggleSection('questions')}
+          onPress={() => router.push('/(tabs)/forum')}
         >
           <Text style={styles.expandableTitle}>Perguntas ao vendedor</Text>
           <Ionicons
-            name={expandedSections.questions ? 'chevron-up' : 'chevron-down'}
+            name="chevron-forward"
             size={14}
             color="#000"
           />
         </TouchableOpacity>
-
-        {expandedSections.questions && (
-          <View style={styles.expandableContent}>
-            <Text style={styles.placeholderText}>
-              Nenhuma pergunta ainda. Seja o primeiro a perguntar!
-            </Text>
-          </View>
-        )}
 
         <View style={styles.divider} />
 
@@ -318,6 +310,7 @@ const styles = StyleSheet.create({
   },
   expandableContainer: {
     marginTop: 10,
+    marginBottom: 40
   },
   divider: {
     height: 1,
@@ -337,6 +330,7 @@ const styles = StyleSheet.create({
   },
   expandableContent: {
     marginTop: 16,
+    marginBottom: 20
   },
   placeholderText: {
     fontSize: 14,
