@@ -22,6 +22,7 @@ export interface Product {
   videos?: string[];
   // Seller information
   seller?: {
+    id: number;
     name: string;
     rating?: number;
   };

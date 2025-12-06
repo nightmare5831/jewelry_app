@@ -16,7 +16,7 @@ interface Product {
   gold_weight_grams?: number;
   properties?: Record<string, any>;
   shipping?: { free: boolean; days: number };
-  seller?: { name: string; rating?: number };
+  seller?: { id: number; name: string; rating?: number };
   rating?: number;
   reviewCount?: number;
 }
@@ -132,7 +132,7 @@ export default function ProductDetailContent({ product, compact = false }: Produ
         {/* Questions Section - Navigate to Forum */}
         <TouchableOpacity
           style={styles.expandableHeader}
-          onPress={() => router.push('/(tabs)/forum')}
+          onPress={() => router.push(`/(tabs)/forum?sellerId=${product.seller?.id}&sellerName=${encodeURIComponent(product.seller?.name || 'Vendedor')}`)}
         >
           <Text style={styles.expandableTitle}>Perguntas ao vendedor</Text>
           <Ionicons

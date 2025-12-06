@@ -256,6 +256,11 @@ function transformProduct(apiProduct: any): Product {
     model3dUrl: apiProduct.model_3d_url,
     model3dType: apiProduct.model_3d_type,
     videos: videos,
+    // Seller info
+    seller: apiProduct.seller ? {
+      id: apiProduct.seller.id,
+      name: apiProduct.seller.name,
+    } : undefined,
   };
 }
 
@@ -333,84 +338,54 @@ export const authApi = {
   },
 };
 
-// Message API
-export interface MessageComment {
-  id: string | number;
-  owner: string;
-  ownerName: string;
-  ownerRole: string;
-  content: string;
-  timestamp: string;
-}
-
-export interface Message {
-  id: string | number;
-  owner: string;
-  ownerName: string;
-  ownerRole: string;
-  content: string;
-  timestamp: string;
-  comments: MessageComment[];
-  favorite: string[];
-  good: string[];
-  bad: string[];
+// Q&A Message API
+export interface QAMessage {
+  id: number;
+  from_user_id: number;
+  from_user_name: string;
+  to_user_id: number;
+  to_user_name: string;
+  question: string;
+  answer: string | null;
+  answered_at: string | null;
+  created_at: string;
 }
 
 export const messageApi = {
-  getAll: async (token: string): Promise<Message[]> => {
-    return await apiCall<Message[]>('/messages', {
+  getBySeller: async (token: string, sellerId: number): Promise<QAMessage[]> => {
+    return await apiCall<QAMessage[]>(`/messages?seller_id=${sellerId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
   },
 
-  create: async (token: string, content: string): Promise<Message> => {
-    return await apiCall<Message>('/messages', {
+  createQuestion: async (token: string, toUserId: number, question: string): Promise<QAMessage> => {
+    return await apiCall<QAMessage>('/messages', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ to_user_id: toUserId, question }),
     });
   },
 
-  addComment: async (token: string, messageId: string | number, content: string): Promise<MessageComment> => {
-    return await apiCall<MessageComment>(`/messages/${messageId}/comments`, {
+  answerQuestion: async (token: string, messageId: number, answer: string): Promise<QAMessage> => {
+    return await apiCall<QAMessage>(`/messages/${messageId}/answer`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ answer }),
     });
   },
 
-  toggleInteraction: async (token: string, messageId: string | number, type: 'favorite' | 'good' | 'bad'): Promise<{ favorite: string[], good: string[], bad: string[] }> => {
-    return await apiCall<{ favorite: string[], good: string[], bad: string[] }>(`/messages/${messageId}/interactions`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ type }),
-    });
-  },
-
-  delete: async (token: string, messageId: string | number): Promise<void> => {
+  delete: async (token: string, messageId: number): Promise<void> => {
     await apiCall<void>(`/messages/${messageId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    });
-  },
-
-  deleteMultiple: async (token: string, ids: (string | number)[]): Promise<void> => {
-    await apiCall<void>('/messages/delete-multiple', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ ids }),
     });
   },
 };
