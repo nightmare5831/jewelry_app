@@ -29,10 +29,12 @@ export default function Forum() {
   const decodedSellerName = sellerName ? decodeURIComponent(sellerName) : 'Vendedor';
 
   useEffect(() => {
-    if (sellerIdNum) {
+    if (sellerIdNum && authToken) {
       loadMessages();
+    } else {
+      setLoading(false);
     }
-  }, [sellerIdNum]);
+  }, [sellerIdNum, authToken]);
 
   const loadMessages = async () => {
     if (!authToken || !sellerIdNum) return;
@@ -42,7 +44,6 @@ export default function Forum() {
       setMessages(data);
     } catch (error) {
       console.error('Failed to load messages:', error);
-      Alert.alert('Erro', 'Não foi possível carregar as perguntas');
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,14 @@ export default function Forum() {
   };
 
   const handleCreateQuestion = async () => {
-    if (!newQuestionText.trim() || !authToken || !sellerIdNum) return;
+    if (!authToken) {
+      Alert.alert('Login necessário', 'Faça login para enviar uma pergunta', [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Login', onPress: () => router.push('/auth/login') },
+      ]);
+      return;
+    }
+    if (!newQuestionText.trim() || !sellerIdNum) return;
     try {
       await messageApi.createQuestion(authToken, sellerIdNum, newQuestionText);
       setNewQuestionText('');
@@ -80,29 +88,15 @@ export default function Forum() {
     }
   };
 
-  const handleDelete = async (messageId: number) => {
-    if (!authToken) return;
-    Alert.alert(
-      'Confirmar exclusão',
-      'Tem certeza que deseja excluir esta pergunta?',
-      [
+  const handleNewQuestionPress = () => {
+    if (!authToken) {
+      Alert.alert('Login necessário', 'Faça login para enviar uma pergunta', [
         { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await messageApi.delete(authToken, messageId);
-              Alert.alert('Sucesso', 'Pergunta excluída com sucesso!');
-              loadMessages();
-            } catch (error) {
-              console.error('Failed to delete:', error);
-              Alert.alert('Erro', 'Não foi possível excluir a pergunta');
-            }
-          },
-        },
-      ]
-    );
+        { text: 'Login', onPress: () => router.push('/auth/login') },
+      ]);
+      return;
+    }
+    setShowNewQuestion(true);
   };
 
   const isCurrentUserSeller = currentUser?.id === sellerIdNum;
@@ -134,60 +128,32 @@ export default function Forum() {
           <Ionicons name="arrow-back" size={24} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Perguntas para {decodedSellerName}</Text>
-        <View style={styles.backButton} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#2563eb" />
+            <ActivityIndicator size="large" color="#000000" />
           </View>
         ) : messages.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="chatbubbles-outline" size={64} color="#d1d5db" />
             <Text style={styles.emptyStateTitle}>Nenhuma pergunta ainda</Text>
-            <Text style={styles.emptyStateText}>Seja o primeiro a fazer uma pergunta!</Text>
+            <Text style={styles.emptyStateText}>
+              {isCurrentUserSeller
+                ? 'Você ainda não recebeu perguntas de compradores.'
+                : 'Seja o primeiro a fazer uma pergunta para este vendedor!'}
+            </Text>
           </View>
         ) : (
           messages.map((message) => (
             <View key={message.id} style={styles.qaCard}>
               {/* Question */}
-              <View style={styles.questionSection}>
-                <View style={styles.qaHeader}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>
-                      {message.from_user_name.charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                  <View style={styles.qaHeaderInfo}>
-                    <Text style={styles.userName}>{message.from_user_name}</Text>
-                    <Text style={styles.timestamp}>{message.created_at}</Text>
-                  </View>
-                  {message.from_user_id === currentUser?.id && (
-                    <TouchableOpacity onPress={() => handleDelete(message.id)} style={styles.deleteBtn}>
-                      <Ionicons name="trash-outline" size={18} color="#ef4444" />
-                    </TouchableOpacity>
-                  )}
-                </View>
-                <Text style={styles.questionText}>{message.question}</Text>
-              </View>
+              <Text style={styles.questionText} numberOfLines={2}>{message.question}</Text>
 
               {/* Answer */}
               {message.answer ? (
-                <View style={styles.answerSection}>
-                  <View style={styles.qaHeader}>
-                    <View style={[styles.avatar, styles.sellerAvatar]}>
-                      <Text style={styles.avatarText}>
-                        {message.to_user_name.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                    <View style={styles.qaHeaderInfo}>
-                      <Text style={styles.userName}>{message.to_user_name}</Text>
-                      <Text style={styles.timestamp}>{message.answered_at}</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.answerText}>{message.answer}</Text>
-                </View>
+                <Text style={styles.answerText} numberOfLines={2}>{message.answer}</Text>
               ) : isCurrentUserSeller ? (
                 answeringId === message.id ? (
                   <View style={styles.answerInputSection}>
@@ -220,7 +186,7 @@ export default function Forum() {
                     style={styles.answerBtn}
                     onPress={() => setAnsweringId(message.id)}
                   >
-                    <Ionicons name="chatbubble-outline" size={16} color="#2563eb" />
+                    <Ionicons name="chatbubble-outline" size={16} color="#000000" />
                     <Text style={styles.answerBtnText}>Responder</Text>
                   </TouchableOpacity>
                 )
@@ -234,42 +200,46 @@ export default function Forum() {
         )}
       </ScrollView>
 
-      {/* New Question Modal */}
+      {/* New Question Modal - Centered */}
       {showNewQuestion && (
-        <View style={styles.newQuestionContainer}>
-          <View style={styles.newQuestionHeader}>
-            <Text style={styles.newQuestionTitle}>Nova Pergunta</Text>
-            <TouchableOpacity onPress={() => setShowNewQuestion(false)}>
-              <Ionicons name="close" size={24} color="#6b7280" />
+        <View style={styles.modalOverlay}>
+          <View style={styles.newQuestionContainer}>
+            <View style={styles.newQuestionHeader}>
+              <Text style={styles.newQuestionTitle}>Pergunte ao vendedor</Text>
+              <TouchableOpacity onPress={() => setShowNewQuestion(false)}>
+                <Ionicons name="close" size={24} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              style={styles.newQuestionInput}
+              placeholder="Digite sua pergunta..."
+              value={newQuestionText}
+              onChangeText={setNewQuestionText}
+              multiline
+              maxLength={1000}
+              autoFocus
+            />
+            <TouchableOpacity
+              style={[styles.modalButton, !newQuestionText.trim() && styles.modalButtonDisabled]}
+              onPress={handleCreateQuestion}
+              disabled={!newQuestionText.trim()}
+            >
+              <Text style={styles.modalButtonText}>Criar pergunta</Text>
             </TouchableOpacity>
           </View>
-          <TextInput
-            style={styles.newQuestionInput}
-            placeholder="Digite sua pergunta..."
-            value={newQuestionText}
-            onChangeText={setNewQuestionText}
-            multiline
-            maxLength={1000}
-            autoFocus
-          />
-          <TouchableOpacity
-            style={[styles.postButton, !newQuestionText.trim() && styles.postButtonDisabled]}
-            onPress={handleCreateQuestion}
-            disabled={!newQuestionText.trim()}
-          >
-            <Text style={styles.postButtonText}>Enviar Pergunta</Text>
-          </TouchableOpacity>
         </View>
       )}
 
-      {/* Create Question Button */}
-      {!isCurrentUserSeller && (
-        <TouchableOpacity
-          style={styles.createButton}
-          onPress={() => setShowNewQuestion(true)}
-        >
-          <Ionicons name="add" size={28} color="#ffffff" />
-        </TouchableOpacity>
+      {/* Footer with Create Button - Similar to Register page */}
+      {!isCurrentUserSeller && !showNewQuestion && (
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={handleNewQuestionPress}
+          >
+            <Text style={styles.createButtonText}>Adicionar pergunta</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </SafeAreaView>
   );
@@ -285,8 +255,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -305,12 +275,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
-    flex: 1,
-    textAlign: 'center',
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 100,
+    paddingBottom: 120,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -332,17 +300,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     marginTop: 8,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
   qaCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f3f4f6',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
   },
   questionSection: {
     marginBottom: 12,
@@ -386,30 +351,27 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontSize: 15,
-    color: '#374151',
+    color: '#000000',
+    fontWeight: '700',
     lineHeight: 22,
-  },
-  answerSection: {
-    backgroundColor: '#f0fdf4',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 8,
+    marginBottom: 8,
   },
   answerText: {
     fontSize: 15,
-    color: '#374151',
+    color: '#000000',
     lineHeight: 22,
+    height: 44,
+    paddingLeft: 16,
   },
   pendingAnswer: {
-    backgroundColor: '#fef3c7',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 8,
+    height: 44,
+    justifyContent: 'center',
+    paddingLeft: 16,
   },
   pendingAnswerText: {
-    fontSize: 13,
-    color: '#92400e',
-    fontStyle: 'italic',
+    fontSize: 15,
+    color: '#6b7280',
+    lineHeight: 22,
   },
   answerBtn: {
     flexDirection: 'row',
@@ -420,7 +382,7 @@ const styles = StyleSheet.create({
   },
   answerBtnText: {
     fontSize: 14,
-    color: '#2563eb',
+    color: '#000000',
     fontWeight: '500',
   },
   answerInputSection: {
@@ -449,7 +411,7 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   sendBtn: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#000000',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -462,18 +424,25 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '500',
   },
-  newQuestionContainer: {
+  modalOverlay: {
     position: 'absolute',
-    bottom: 80,
-    left: '5%',
-    right: '5%',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  newQuestionContainer: {
     width: '90%',
+    maxHeight: '70%',
     backgroundColor: '#ffffff',
     borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 10,
   },
@@ -489,42 +458,52 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   newQuestionInput: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#ffffff',
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
     padding: 16,
     fontSize: 15,
     minHeight: 100,
+    maxHeight: 120,
     textAlignVertical: 'top',
     marginBottom: 16,
   },
-  postButton: {
-    backgroundColor: '#2563eb',
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  postButtonDisabled: {
-    backgroundColor: '#d1d5db',
-  },
-  postButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  createButton: {
-    position: 'absolute',
-    bottom: 20,
-    alignSelf: 'center',
-    width: 56,
-    height: 56,
+  modalButton: {
+    backgroundColor: '#000000',
+    height: 40,
     borderRadius: 28,
-    backgroundColor: '#2563eb',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 8,
+  },
+  modalButtonDisabled: {
+    backgroundColor: '#d1d5db',
+  },
+  modalButtonText: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+    paddingTop: 20,
+  },
+  createButton: {
+    backgroundColor: '#000000',
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  createButtonText: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '600',
   },
 });
