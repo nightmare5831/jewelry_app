@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
   Image,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +26,12 @@ export default function RegisterDetail1() {
   const { setSellerRegistrationData } = useAppStore();
 
   const handleNext = () => {
+    // Validate required fields
+    if (!cnpj || !cpf || !birthDate || !phone || !email) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
     // Save data to store and navigate
     setSellerRegistrationData({
       cnpj,

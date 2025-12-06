@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
   Image,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,6 +25,12 @@ export default function RegisterDetail2() {
   const { setSellerRegistrationData } = useAppStore();
 
   const handleNext = () => {
+    // Validate required fields (monthlyRevenue is optional)
+    if (!tradeName || !companyPhone || !companyEmail) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
     // Save data to store and navigate
     setSellerRegistrationData({
       tradeName,
@@ -31,7 +38,7 @@ export default function RegisterDetail2() {
       companyEmail,
       monthlyRevenue,
     });
-    router.push('/auth/register-detail-3');
+    router.push('/auth/create-account');
   };
 
   return (
