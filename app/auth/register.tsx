@@ -15,27 +15,21 @@ import {
 import { Link, router } from 'expo-router';
 import { useAppStore } from '../../store/useAppStore';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [role, setRole] = useState<'buyer' | 'seller'>('buyer');
   const [showPassword, setShowPassword] = useState(false);
-  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const { register, isAuthLoading } = useAppStore();
 
   const handleRegister = async () => {
-    if (!name || !email || !password || !passwordConfirmation) {
+    if (!name || !email || !password) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios');
-      return;
-    }
-
-    if (password !== passwordConfirmation) {
-      Alert.alert('Erro', 'As senhas não correspondem');
       return;
     }
 
@@ -45,34 +39,54 @@ export default function Register() {
     }
 
     try {
-      await register(name, email, password, passwordConfirmation, phone, role);
-      Alert.alert(
-        'Sucesso',
-        'Conta criada com sucesso!',
-        [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
-      );
+      // If seller, just navigate to detail pages without registering yet
+      if (role === 'seller') {
+        // TODO: Store registration data in context/state for later submission
+        router.push('/auth/register-detail-1');
+      } else {
+        // For buyers, register immediately
+        await register(name, email, password, password, '', role);
+        Alert.alert(
+          'Sucesso',
+          'Conta criada com sucesso!',
+          [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+        );
+      }
     } catch (error: any) {
       Alert.alert('Erro no Registro', error.message || 'Não foi possível criar a conta');
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Image
-            source={require('../../assets/icon.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.title}>Jóia Perfeita</Text>
-          <Text style={styles.subtitle}>Cadastro de novo usuário</Text>
-        </View>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flex}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Header with Back Button */}
+          <View style={styles.headerRow}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Ionicons name="chevron-back" size={24} color="#000" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Cadastro de novo usuário</Text>
+          </View>
 
-        <View style={styles.form}>
+          {/* Logo and Title */}
+          <View style={styles.header}>
+            <Image
+              source={require('../../assets/icon.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text style={styles.title}>Jóia Perfeita</Text>
+            <Text style={styles.subtitle}>Cadastro de novo usuário</Text>
+          </View>
+
+          <View style={styles.form}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Nome Completo*</Text>
             <View style={styles.inputContainer}>
@@ -104,21 +118,6 @@ export default function Register() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Telefone</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="(00) 00000-0000"
-                placeholderTextColor="#B3B3B3"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                autoComplete="tel"
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
             <Text style={styles.label}>Senha*</Text>
             <View style={styles.inputContainer}>
               <TextInput
@@ -141,41 +140,19 @@ export default function Register() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Confirmar Senha*</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Digite a senha novamente"
-                placeholderTextColor="#B3B3B3"
-                value={passwordConfirmation}
-                onChangeText={setPasswordConfirmation}
-                secureTextEntry={!showPasswordConfirmation}
-                autoCapitalize="none"
-              />
-              <TouchableOpacity onPress={() => setShowPasswordConfirmation(!showPasswordConfirmation)}>
-                <Ionicons
-                  name={showPasswordConfirmation ? 'eye-off-outline' : 'eye-outline'}
-                  size={20}
-                  color="#6b7280"
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
             <Text style={styles.label}>Tipo de Conta</Text>
             <View style={styles.roleContainer}>
               <TouchableOpacity
                 style={[styles.roleButton, role === 'buyer' && styles.roleButtonActive]}
                 onPress={() => setRole('buyer')}
               >
-                <Ionicons
-                  name="cart-outline"
-                  size={24}
-                  color={role === 'buyer' ? '#2563eb' : '#6b7280'}
+                <Image
+                  source={require('../../assets/buyer.png')}
+                  style={styles.roleIcon}
+                  resizeMode="contain"
                 />
                 <Text style={[styles.roleButtonText, role === 'buyer' && styles.roleButtonTextActive]}>
-                  Comprador
+                  Conta cliente
                 </Text>
               </TouchableOpacity>
 
@@ -183,17 +160,33 @@ export default function Register() {
                 style={[styles.roleButton, role === 'seller' && styles.roleButtonActive]}
                 onPress={() => setRole('seller')}
               >
-                <Ionicons
-                  name="storefront-outline"
-                  size={24}
-                  color={role === 'seller' ? '#2563eb' : '#6b7280'}
+                <Image
+                  source={require('../../assets/buyer.png')}
+                  style={styles.roleIcon}
+                  resizeMode="contain"
                 />
                 <Text style={[styles.roleButtonText, role === 'seller' && styles.roleButtonTextActive]}>
-                  Vendedor
+                  Conta vendedor
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
+
+          {/* Terms and Conditions */}
+          <TouchableOpacity
+            style={styles.termsContainer}
+            onPress={() => setAcceptedTerms(!acceptedTerms)}
+          >
+            <View style={styles.checkbox}>
+              {acceptedTerms && (
+                <Ionicons name="checkmark" size={16} color="#000" />
+              )}
+            </View>
+            <Text style={styles.termsText}>
+              Concordo com os <Text style={styles.termsLink}>Termos Jóia Perfeita</Text>{'\n'}
+              Leia com atenção à nossa política de privacidade e termos de uso.
+            </Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.button, isAuthLoading && styles.buttonDisabled]}
@@ -203,21 +196,13 @@ export default function Register() {
             {isAuthLoading ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text style={styles.buttonText}>Criar Conta</Text>
+              <Text style={styles.buttonText}>Criar conta</Text>
             )}
           </TouchableOpacity>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Já tem uma conta? </Text>
-            <Link href="/auth/login" asChild>
-              <TouchableOpacity>
-                <Text style={styles.link}>Faça login aqui</Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -226,45 +211,62 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
+  flex: {
+    flex: 1,
+  },
   scrollContent: {
     flexGrow: 1,
-    padding: 24,
-    paddingTop: 60,
+    padding: 20,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#071327',
+    marginLeft: 8,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   logo: {
-    width: 95,
-    height: 121,
-    marginBottom: 12,
+    width: 50,
+    height: 64,
+    marginBottom: 10,
   },
   title: {
-    fontSize: 31.5,
-    fontWeight: '400',
-    color: '#535252',
-    marginTop: 8,
-  },
-  subtitle: {
     fontSize: 18,
     fontWeight: '400',
+    color: '#535252',
+    marginTop: 6,
+  },
+  subtitle: {
+    fontSize: 13,
+    fontWeight: '400',
     color: '#000000',
-    marginTop: 8,
+    marginTop: 6,
   },
   form: {
     width: '100%',
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#D9D9D9',
+    padding: 20,
   },
   inputGroup: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '400',
     color: '#000000',
     marginBottom: 8,
@@ -272,11 +274,9 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#D9D9D9',
+    backgroundColor: '#F5F5F5',
     borderRadius: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     height: 40,
   },
   inputIcon: {
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 13,
     color: '#000000',
   },
   roleContainer: {
@@ -293,35 +293,67 @@ const styles = StyleSheet.create({
   },
   roleButton: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#D9D9D9',
     borderRadius: 8,
-    padding: 16,
+    padding: 12,
     gap: 8,
   },
   roleButtonActive: {
-    borderColor: '#000000',
-    backgroundColor: '#F5F5F5',
+    borderColor: '#F5C518',
+    backgroundColor: '#FFFBF0',
   },
   roleButtonText: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: '400',
     color: '#6b7280',
   },
   roleButtonTextActive: {
     color: '#000000',
+    fontWeight: '500',
+  },
+  roleIcon: {
+    width: 36,
+    height: 36,
+  },
+  termsContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 8,
+    marginBottom: 20,
+  },
+  checkbox: {
+    width: 16,
+    height: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 3,
+    marginRight: 10,
+    marginTop: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  termsText: {
+    flex: 1,
+    fontSize: 10,
+    color: '#6b7280',
+    lineHeight: 14,
+  },
+  termsLink: {
+    color: '#000000',
+    fontWeight: '600',
   },
   button: {
     backgroundColor: '#000000',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 40,
-    borderRadius: 20,
+    height: 42,
+    borderRadius: 21,
     paddingHorizontal: 12,
     marginTop: 8,
   },
@@ -333,22 +365,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '400',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  footerText: {
     fontSize: 14,
-    color: '#6b7280',
-  },
-  link: {
-    fontSize: 14,
-    color: '#000000',
     fontWeight: '600',
   },
 });

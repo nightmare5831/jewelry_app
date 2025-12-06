@@ -19,7 +19,6 @@ import { Ionicons } from '@expo/vector-icons';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const { login, isAuthLoading } = useAppStore();
@@ -31,7 +30,7 @@ export default function Login() {
     }
 
     try {
-      await login(email, password, rememberMe);
+      await login(email, password, false);
       router.replace('/(tabs)');
     } catch (error: any) {
       Alert.alert('Erro no Login', error.message || 'Email ou senha incorretos');
@@ -93,18 +92,6 @@ export default function Login() {
             </View>
           </View>
 
-          <View style={styles.rememberContainer}>
-            <TouchableOpacity
-              style={styles.checkbox}
-              onPress={() => setRememberMe(!rememberMe)}
-            >
-              <View style={[styles.checkboxBox, rememberMe && styles.checkboxBoxChecked]}>
-                {rememberMe && <Ionicons name="checkmark" size={16} color="white" />}
-              </View>
-              <Text style={styles.checkboxLabel}>Lembrar de mim</Text>
-            </TouchableOpacity>
-          </View>
-
           <TouchableOpacity
             style={[styles.button, isAuthLoading && styles.buttonDisabled]}
             onPress={handleLogin}
@@ -117,14 +104,18 @@ export default function Login() {
             )}
           </TouchableOpacity>
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Não tem uma conta? </Text>
-            <Link href="/auth/register" asChild>
-              <TouchableOpacity>
-                <Text style={styles.link}>Registre-se aqui</Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
+          <TouchableOpacity style={styles.forgotPassword}>
+            <Text style={styles.forgotPasswordText}>Esqueceu sua senha?</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Não tem uma conta? </Text>
+          <Link href="/auth/register" asChild>
+            <TouchableOpacity>
+              <Text style={styles.link}>Cadastre-se aqui</Text>
+            </TouchableOpacity>
+          </Link>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -168,6 +159,7 @@ const styles = StyleSheet.create({
     padding: 24,
     borderWidth: 1,
     borderColor: '#D9D9D9',
+    marginBottom: 24,
   },
   inputGroup: {
     marginBottom: 24,
@@ -196,32 +188,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000000',
   },
-  rememberContainer: {
-    marginBottom: 24,
-  },
-  checkbox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkboxBox: {
-    width: 20,
-    height: 20,
-    borderWidth: 1,
-    borderColor: '#D9D9D9',
-    borderRadius: 4,
-    marginRight: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  checkboxBoxChecked: {
-    backgroundColor: '#000000',
-    borderColor: '#000000',
-  },
-  checkboxLabel: {
-    fontSize: 14,
-    color: '#000000',
-  },
   button: {
     backgroundColor: '#000000',
     flexDirection: 'row',
@@ -242,11 +208,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '400',
   },
+  forgotPassword: {
+    alignItems: 'flex-start',
+    marginTop: 16,
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    color: '#000000',
+    textDecorationLine: 'underline',
+  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
   },
   footerText: {
     fontSize: 14,

@@ -151,11 +151,17 @@ export default function CatalogScreen() {
             {catalogMode === 'browse' ? (
               /* BROWSE MODE - Show thumbnail only */
               <>
-                <Image
-                  source={{ uri: currentProduct.thumbnail }}
-                  style={styles.productImage}
-                  resizeMode="cover"
-                />
+                {currentProduct.thumbnail ? (
+                  <Image
+                    source={{ uri: currentProduct.thumbnail }}
+                    style={styles.productImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.productImage}>
+                    <Ionicons name="image-outline" size={64} color="#d1d5db" />
+                  </View>
+                )}
                 <LinearGradient
                   colors={['transparent', 'rgba(0,0,0,0.3)']}
                   style={styles.gradientOverlay}
@@ -166,7 +172,7 @@ export default function CatalogScreen() {
               <View style={styles.mediaViewerContainer}>
                 {/* Top: Main viewer (70%) */}
                 <View style={styles.mainViewer}>
-                  {mediaItems[selectedMediaIndex]?.type === 'image' && (
+                  {mediaItems[selectedMediaIndex]?.type === 'image' && mediaItems[selectedMediaIndex]?.url && (
                     <Image
                       source={{ uri: mediaItems[selectedMediaIndex].url }}
                       style={styles.mainMedia}
@@ -193,7 +199,7 @@ export default function CatalogScreen() {
                         ]}
                         onPress={() => setSelectedMediaIndex(idx)}
                       >
-                        {item.type === 'image' && (
+                        {item.type === 'image' && item.url && (
                           <Image source={{ uri: item.url }} style={styles.thumbnailImage} />
                         )}
                         {item.type === 'video' && (
@@ -310,7 +316,13 @@ export default function CatalogScreen() {
               {/* Top Row: User Profile */}
               <TouchableOpacity
                 style={styles.topIconRow}
-                onPress={() => router.push('/(tabs)/profile')}
+                onPress={() => {
+                  if (currentUser) {
+                    router.push('/(tabs)/profile');
+                  } else {
+                    router.push('/auth/login');
+                  }
+                }}
               >
                 {currentUser ? (
                   <>
@@ -413,6 +425,9 @@ const styles = StyleSheet.create({
   productImage: {
     width: '100%',
     height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
   },
   gradientOverlay: {
     position: 'absolute',
