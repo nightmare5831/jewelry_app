@@ -13,6 +13,7 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppStore } from '../../store/useAppStore';
 
 export default function RegisterDetail1() {
   const [cnpj, setCnpj] = useState('');
@@ -21,8 +22,17 @@ export default function RegisterDetail1() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
 
+  const { setSellerRegistrationData } = useAppStore();
+
   const handleNext = () => {
-    // TODO: Add validation
+    // Save data to store and navigate
+    setSellerRegistrationData({
+      cnpj,
+      cpf,
+      birthDate,
+      phone,
+      representativeEmail: email,
+    });
     router.push('/auth/register-detail-2');
   };
 
@@ -68,7 +78,7 @@ export default function RegisterDetail1() {
             <View style={styles.stepConnector}>
               <View style={[styles.stepDotLarge, styles.stepDotActive]} />
               <View style={[styles.stepLine, styles.stepLineActive]} />
-              <View style={styles.stepDotLarge} />
+              <View style={[styles.stepDotLarge, styles.stepDotActive]} />
               <View style={styles.stepLine} />
               <View style={styles.stepDotLarge} />
               <View style={styles.stepLine} />
@@ -76,7 +86,7 @@ export default function RegisterDetail1() {
             </View>
             <View style={styles.stepLabelsRow}>
               <Text style={[styles.stepLabelTop, styles.stepLabelActive]}>Dados{'\n'}básicos</Text>
-              <Text style={styles.stepLabelTop}>Sobre a{'\n'}empresa</Text>
+              <Text style={[styles.stepLabelTop, styles.stepLabelActive]}>Sobre a{'\n'}empresa</Text>
               <Text style={styles.stepLabelTop}>Dados{'\n'}adicionais</Text>
               <Text style={styles.stepLabelTop}>Confirmação</Text>
             </View>
@@ -246,6 +256,12 @@ const styles = StyleSheet.create({
   stepLineActive: {
     backgroundColor: '#000000',
   },
+  stepLineCompleted: {
+    backgroundColor: '#000000',
+  },
+  stepDotCompleted: {
+    backgroundColor: '#000000',
+  },
   stepLabelsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -304,8 +320,8 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: '#000000',
-    borderRadius: 28,
-    height: 56,
+    borderRadius: 24,
+    height: 48,
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',

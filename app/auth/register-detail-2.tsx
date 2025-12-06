@@ -13,6 +13,7 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppStore } from '../../store/useAppStore';
 
 export default function RegisterDetail2() {
   const [tradeName, setTradeName] = useState('');
@@ -20,8 +21,16 @@ export default function RegisterDetail2() {
   const [companyEmail, setCompanyEmail] = useState('');
   const [monthlyRevenue, setMonthlyRevenue] = useState('');
 
+  const { setSellerRegistrationData } = useAppStore();
+
   const handleNext = () => {
-    // TODO: Add validation
+    // Save data to store and navigate
+    setSellerRegistrationData({
+      tradeName,
+      companyPhone,
+      companyEmail,
+      monthlyRevenue,
+    });
     router.push('/auth/register-detail-3');
   };
 
@@ -65,18 +74,18 @@ export default function RegisterDetail2() {
           {/* Progress Stepper */}
           <View style={styles.stepperTop}>
             <View style={styles.stepConnector}>
-              <View style={[styles.stepDotLarge, styles.stepDotCompleted]} />
-              <View style={[styles.stepLine, styles.stepLineCompleted]} />
               <View style={[styles.stepDotLarge, styles.stepDotActive]} />
-              <View style={[styles.stepLine]} />
-              <View style={styles.stepDotLarge} />
+              <View style={[styles.stepLine, styles.stepLineActive]} />
+              <View style={[styles.stepDotLarge, styles.stepDotActive]} />
+              <View style={[styles.stepLine, styles.stepLineActive]} />
+              <View style={[styles.stepDotLarge, styles.stepDotActive]} />
               <View style={styles.stepLine} />
               <View style={styles.stepDotLarge} />
             </View>
             <View style={styles.stepLabelsRow}>
-              <Text style={styles.stepLabelTop}>Dados{'\n'}básicos</Text>
+              <Text style={[styles.stepLabelTop, styles.stepLabelActive]}>Dados{'\n'}básicos</Text>
               <Text style={[styles.stepLabelTop, styles.stepLabelActive]}>Sobre a{'\n'}empresa</Text>
-              <Text style={styles.stepLabelTop}>Dados{'\n'}adicionais</Text>
+              <Text style={[styles.stepLabelTop, styles.stepLabelActive]}>Dados{'\n'}adicionais</Text>
               <Text style={styles.stepLabelTop}>Confirmação</Text>
             </View>
           </View>
@@ -294,8 +303,8 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: '#000000',
-    borderRadius: 28,
-    height: 56,
+    borderRadius: 24,
+    height: 48,
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',

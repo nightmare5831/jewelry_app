@@ -25,7 +25,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  const { register, isAuthLoading } = useAppStore();
+  const { register, isAuthLoading, setSellerRegistrationData } = useAppStore();
 
   const handleRegister = async () => {
     if (!name || !email || !password) {
@@ -41,7 +41,8 @@ export default function Register() {
     try {
       // If seller, just navigate to detail pages without registering yet
       if (role === 'seller') {
-        // TODO: Store registration data in context/state for later submission
+        // Store registration data for later submission
+        setSellerRegistrationData({ name, email, password });
         router.push('/auth/register-detail-1');
       } else {
         // For buyers, register immediately
@@ -77,13 +78,14 @@ export default function Register() {
 
           {/* Logo and Title */}
           <View style={styles.header}>
-            <Image
-              source={require('../../assets/icon.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.title}>Jóia Perfeita</Text>
-            <Text style={styles.subtitle}>Cadastro de novo usuário</Text>
+            <View style={styles.logoContainer}>
+              <Image
+                source={require('../../assets/user.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </View>
+            <Text style={styles.title} numberOfLines={1}>Jóia Perfeita</Text>
           </View>
 
           <View style={styles.form}>
@@ -139,7 +141,7 @@ export default function Register() {
             </View>
           </View>
 
-          <View style={styles.inputGroup}>
+          <View style={[styles.inputGroup, styles.roleInputGroup]}>
             <Text style={styles.label}>Tipo de Conta</Text>
             <View style={styles.roleContainer}>
               <TouchableOpacity
@@ -151,7 +153,7 @@ export default function Register() {
                   style={styles.roleIcon}
                   resizeMode="contain"
                 />
-                <Text style={[styles.roleButtonText, role === 'buyer' && styles.roleButtonTextActive]}>
+                <Text style={[styles.roleButtonText, role === 'buyer' && styles.roleButtonTextActive]} numberOfLines={1}>
                   Conta cliente
                 </Text>
               </TouchableOpacity>
@@ -165,7 +167,7 @@ export default function Register() {
                   style={styles.roleIcon}
                   resizeMode="contain"
                 />
-                <Text style={[styles.roleButtonText, role === 'seller' && styles.roleButtonTextActive]}>
+                <Text style={[styles.roleButtonText, role === 'seller' && styles.roleButtonTextActive]} numberOfLines={1}>
                   Conta vendedor
                 </Text>
               </TouchableOpacity>
@@ -187,7 +189,11 @@ export default function Register() {
               Leia com atenção à nossa política de privacidade e termos de uso.
             </Text>
           </TouchableOpacity>
+        </View>
+      </ScrollView>
 
+        {/* Footer with Button */}
+        <View style={styles.footer}>
           <TouchableOpacity
             style={[styles.button, isAuthLoading && styles.buttonDisabled]}
             onPress={handleRegister}
@@ -200,7 +206,6 @@ export default function Register() {
             )}
           </TouchableOpacity>
         </View>
-      </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -217,6 +222,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: 20,
+    paddingBottom: 120,
   },
   headerRow: {
     flexDirection: 'row',
@@ -230,28 +236,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '400',
     color: '#071327',
     marginLeft: 8,
   },
   header: {
     alignItems: 'center',
+    marginTop: 20,
     marginBottom: 20,
   },
+  logoContainer: {
+    width: 90,
+    height: 90,
+    marginBottom: 12,
+    borderRadius: 100,
+    borderWidth: 2,
+    borderColor: '#D9D9D9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   logo: {
-    width: 50,
-    height: 64,
-    marginBottom: 10,
+    width: 60,
+    height: 60,
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '400',
     color: '#535252',
     marginTop: 6,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '400',
     color: '#000000',
     marginTop: 6,
@@ -263,28 +279,33 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  roleInputGroup: {
+    marginTop: 15,
   },
   label: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '400',
     color: '#000000',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    height: 40,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D9D9D9',
+    borderRadius: 10,
+    paddingHorizontal: 18,
+    height: 56,
   },
   inputIcon: {
     marginRight: 8,
   },
   input: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 16,
     color: '#000000',
   },
   roleContainer: {
@@ -299,49 +320,50 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
     borderColor: '#D9D9D9',
-    borderRadius: 8,
-    padding: 12,
-    gap: 8,
+    borderRadius: 10,
+    padding: 14,
+    gap: 10,
   },
   roleButtonActive: {
     borderColor: '#F5C518',
     backgroundColor: '#FFFBF0',
   },
   roleButtonText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '400',
     color: '#6b7280',
+    textAlign: 'center',
   },
   roleButtonTextActive: {
     color: '#000000',
     fontWeight: '500',
   },
   roleIcon: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
   },
   termsContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginTop: 8,
-    marginBottom: 20,
+    marginTop: 16,
+    marginBottom: 24,
   },
   checkbox: {
-    width: 16,
-    height: 16,
+    width: 20,
+    height: 20,
     borderWidth: 2,
     borderColor: '#000000',
-    borderRadius: 3,
-    marginRight: 10,
-    marginTop: 1,
+    borderRadius: 4,
+    marginRight: 12,
+    marginTop: 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
   termsText: {
     flex: 1,
-    fontSize: 10,
+    fontSize: 14,
     color: '#6b7280',
-    lineHeight: 14,
+    lineHeight: 22,
   },
   termsLink: {
     color: '#000000',
@@ -352,8 +374,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 42,
-    borderRadius: 21,
+    height: 48,
+    borderRadius: 24,
     paddingHorizontal: 12,
     marginTop: 8,
   },
@@ -365,7 +387,17 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 17,
     fontWeight: '600',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+    paddingTop: 20,
   },
 });

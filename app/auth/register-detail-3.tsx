@@ -11,8 +11,11 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppStore } from '../../store/useAppStore';
 
 export default function RegisterDetail3() {
+  const { sellerRegistrationData, clearSellerRegistrationData } = useAppStore();
+
   const handleConfirm = () => {
     // TODO: Submit registration data to API
     Alert.alert(
@@ -21,7 +24,10 @@ export default function RegisterDetail3() {
       [
         {
           text: 'OK',
-          onPress: () => router.replace('/(tabs)'),
+          onPress: () => {
+            clearSellerRegistrationData();
+            router.replace('/(tabs)');
+          },
         },
       ]
     );
@@ -84,40 +90,34 @@ export default function RegisterDetail3() {
           <View style={styles.summaryContainer}>
             <Text style={styles.summaryText}>
               <Text style={styles.summaryLabel}>CPF: </Text>
-              112.958.447-02{'\n\n'}
+              {sellerRegistrationData?.cpf || '-'}{'\n\n'}
 
               <Text style={styles.summaryLabel}>Data de nascimento: </Text>
-              28/05/1987{'\n\n'}
+              {sellerRegistrationData?.birthDate || '-'}{'\n\n'}
 
               <Text style={styles.summaryLabel}>Nome completo: </Text>
-              GABRIEL CAVALCANTE FURTADO{'\n\n'}
+              {sellerRegistrationData?.name || '-'}{'\n\n'}
 
               <Text style={styles.summaryLabel}>E-mail de acesso: </Text>
-              me@gabrielfurtado.co{'\n\n'}
+              {sellerRegistrationData?.email || '-'}{'\n\n'}
 
               <Text style={styles.summaryLabel}>Telefone: </Text>
-              (22) 98104-1700{'\n\n'}
+              {sellerRegistrationData?.phone || '-'}{'\n\n'}
 
               <Text style={styles.summaryLabel}>CNPJ: </Text>
-              35.502.867/0001-20{'\n\n'}
-
-              <Text style={styles.summaryLabel}>Razão social: </Text>
-              35.502.867 GABRIEL CAVALCANTE FURTADO{'\n\n'}
+              {sellerRegistrationData?.cnpj || '-'}{'\n\n'}
 
               <Text style={styles.summaryLabel}>Nome fantasia: </Text>
-              Gabriel Furtado{'\n\n'}
+              {sellerRegistrationData?.tradeName || '-'}{'\n\n'}
 
               <Text style={styles.summaryLabel}>Telefone da empresa: </Text>
-              (22) 98104-1700{'\n\n'}
+              {sellerRegistrationData?.companyPhone || '-'}{'\n\n'}
 
               <Text style={styles.summaryLabel}>E-mail da empresa: </Text>
-              me@gabrielfurtado.co{'\n\n'}
+              {sellerRegistrationData?.companyEmail || '-'}{'\n\n'}
 
               <Text style={styles.summaryLabel}>Faturamento mensal: </Text>
-              R$ 7.000,00{'\n\n'}
-
-              <Text style={styles.summaryLabel}>Endereço: </Text>
-              ESPIRITO SANTO, 386, EXTENSAO DO BOSQUE, Rio das Ostras, RJ - CEP: 28893-316
+              {sellerRegistrationData?.monthlyRevenue ? `R$ ${sellerRegistrationData.monthlyRevenue}` : '-'}
             </Text>
           </View>
         </ScrollView>
@@ -264,8 +264,8 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: '#000000',
-    borderRadius: 28,
-    height: 56,
+    borderRadius: 24,
+    height: 48,
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
