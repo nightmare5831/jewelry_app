@@ -1,13 +1,15 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { router } from 'expo-router';
 
+const userIcon = require('../../assets/user.png');
+
 export default function PerfilScreen() {
   const { currentUser, logout } = useAppStore();
-  const [activeTab, setActiveTab] = useState<'posts' | 'saved' | 'purchases'>('posts');
+  const [activeTab, setActiveTab] = useState<'wishes' | 'shopping' | 'message'>('wishes');
 
   const handleLogout = () => {
     Alert.alert(
@@ -39,7 +41,6 @@ export default function PerfilScreen() {
             <Ionicons name="arrow-back" size={24} color="#111827" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Perfil</Text>
-          <View style={{ width: 40 }} />
         </View>
         <View style={styles.guestContainer}>
           <Ionicons name="person-circle-outline" size={120} color="#d1d5db" />
@@ -71,109 +72,68 @@ export default function PerfilScreen() {
           style={styles.backButton}
           onPress={() => router.push('/(tabs)')}
         >
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          <Text style={styles.backButtonText}>{'<'}</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Perfil</Text>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out" size={24} color="#ffffff" />
-        </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.profileSection}>
-          <View style={styles.profileHeader}>
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                </Text>
-              </View>
-              {currentUser.isPremium && (
-                <View style={styles.premiumBadge}>
-                  <Ionicons name="crown" size={12} color="#f59e0b" />
-                </View>
-              )}
-            </View>
-
-            <View style={styles.userInfo}>
-              <View style={styles.nameContainer}>
-                <Text style={styles.userName}>{currentUser.name}</Text>
-                <View style={styles.roleBadge}>
-                  <Text style={styles.roleBadgeText}>{currentUser.role === 'buyer' ? 'Comprador' : 'Vendedor'}</Text>
-                </View>
-              </View>
-              <Text style={styles.userEmail}>{currentUser.email}</Text>
-              {currentUser.phone && (
-                <Text style={styles.userPhone}>{currentUser.phone}</Text>
-              )}
-            </View>
+          {/* Centered User Icon */}
+          <View style={styles.avatarContainer}>
+            <Image source={userIcon} style={styles.avatarImage} />
           </View>
 
+          {/* Name below icon */}
+          <Text style={styles.userName}>{currentUser.name}</Text>
 
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>Editar Perfil</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.secondaryButton}>
-              <Ionicons name="share-outline" size={20} color="#3b82f6" />
-            </TouchableOpacity>
-          </View>
+          {/* Created date below name */}
+          <Text style={styles.userCreatedDate}>
+            Membro desde {currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : 'N/A'}
+          </Text>
+
         </View>
 
         <View style={styles.tabsContainer}>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'posts' && styles.tabActive]}
-            onPress={() => setActiveTab('posts')}
+            style={[styles.tab, activeTab === 'wishes' && styles.tabActive]}
+            onPress={() => setActiveTab('wishes')}
           >
-            <Text style={[styles.tabText, activeTab === 'posts' && styles.tabTextActive]}>
-              Posts
+            <Text style={[styles.tabText, activeTab === 'wishes' && styles.tabTextActive]}>
+              Desejos
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'saved' && styles.tabActive]}
-            onPress={() => setActiveTab('saved')}
+            style={[styles.tab, activeTab === 'shopping' && styles.tabActive]}
+            onPress={() => setActiveTab('shopping')}
           >
-            <Text style={[styles.tabText, activeTab === 'saved' && styles.tabTextActive]}>
-              Salvos
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'purchases' && styles.tabActive]}
-            onPress={() => setActiveTab('purchases')}
-          >
-            <Text style={[styles.tabText, activeTab === 'purchases' && styles.tabTextActive]}>
+            <Text style={[styles.tabText, activeTab === 'shopping' && styles.tabTextActive]}>
               Compras
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'message' && styles.tabActive]}
+            onPress={() => setActiveTab('message')}
+          >
+            <Text style={[styles.tabText, activeTab === 'message' && styles.tabTextActive]}>
+              Mensagens
             </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.tabContent}>
-          {activeTab === 'posts' && (
-            <View style={styles.emptyState}>
-              <Ionicons name="create-outline" size={48} color="#d1d5db" />
-              <Text style={styles.emptyStateText}>No posts yet</Text>
-            </View>
-          )}
-          {activeTab === 'saved' && (
-            <View style={styles.emptyState}>
-              <Ionicons name="heart-outline" size={48} color="#d1d5db" />
-              <Text style={styles.emptyStateText}>No saved items</Text>
-            </View>
-          )}
-          {activeTab === 'purchases' && (
-            <View style={styles.emptyState}>
-              <Ionicons name="bag-outline" size={48} color="#d1d5db" />
-              <Text style={styles.emptyStateText}>No purchases yet</Text>
-              <TouchableOpacity
-                style={styles.viewOrdersButton}
-                onPress={() => router.push('/orders')}
-              >
-                <Text style={styles.viewOrdersButtonText}>View All Orders</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
       </ScrollView>
+
+      {/* Bottom Button */}
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={styles.homeButton}
+          onPress={() => router.push('/(tabs)')}
+        >
+          <Text style={styles.homeButtonText}>Levar as compras para casa</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -188,8 +148,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -197,174 +157,69 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#111827',
   },
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f3f4f6',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logoutButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#ef4444',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 5,
+  backButtonText: {
+    fontSize: 20,
+    fontWeight: '300',
+    color: '#111827',
   },
   profileSection: {
     backgroundColor: '#ffffff',
     padding: 20,
     marginBottom: 8,
-  },
-  profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
+    alignItems: 'center',
   },
   avatarContainer: {
-    position: 'relative',
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#3b82f6',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  premiumBadge: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#fef3c7',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 90,
+    height: 90,
+    marginBottom: 12,
+    borderRadius: 100,
     borderWidth: 2,
-    borderColor: '#ffffff',
-  },
-  userInfo: {
-    marginLeft: 16,
-    flex: 1,
-  },
-  nameContainer: {
-    flexDirection: 'row',
+    borderColor: '#D9D9D9',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 4,
+  },
+  avatarImage: {
+    width: 60,
+    height: 60,
   },
   userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
-  },
-  roleBadge: {
-    backgroundColor: '#dbeafe',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    marginLeft: 8,
-  },
-  roleBadgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#2563eb',
-  },
-  userHandle: {
-    fontSize: 16,
-    color: '#6b7280',
-    marginBottom: 4,
-  },
-  userEmail: {
-    fontSize: 14,
-    color: '#9ca3af',
-  },
-  userPhone: {
-    fontSize: 14,
-    color: '#9ca3af',
-    marginTop: 2,
-  },
-  userBio: {
-    fontSize: 14,
-    color: '#374151',
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statValue: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#111827',
+    textAlign: 'center',
+    marginBottom: 4,
   },
-  statLabel: {
-    fontSize: 12,
+  userCreatedDate: {
+    fontSize: 14,
     color: '#6b7280',
-    marginTop: 2,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  primaryButton: {
-    flex: 1,
-    backgroundColor: '#3b82f6',
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  secondaryButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#3b82f6',
-    justifyContent: 'center',
-    alignItems: 'center',
+    textAlign: 'center',
   },
   tabsContainer: {
-    backgroundColor: '#ffffff',
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   tab: {
     flex: 1,
-    paddingVertical: 16,
+    marginHorizontal: 6,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#e5e7eb',
     alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: '#3b82f6',
+    backgroundColor: '#000000',
   },
   tabText: {
     fontSize: 14,
@@ -372,10 +227,11 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   tabTextActive: {
-    color: '#3b82f6',
+    color: '#ffffff',
   },
   tabContent: {
     padding: 16,
+    paddingBottom: 100,
   },
   emptyState: {
     alignItems: 'center',
@@ -396,6 +252,28 @@ const styles = StyleSheet.create({
   viewOrdersButtonText: {
     color: '#ffffff',
     fontSize: 14,
+    fontWeight: '600',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+    paddingTop: 20,
+  },
+  homeButton: {
+    backgroundColor: '#000000',
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  homeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 17,
     fontWeight: '600',
   },
   guestContainer: {
