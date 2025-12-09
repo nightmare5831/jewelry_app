@@ -347,7 +347,7 @@ export default function CatalogScreen() {
                     <View style={styles.userAvatarPlaceholder}>
                       <Ionicons name="person" size={24} color="#9ca3af" />
                     </View>
-                    <Text style={styles.userName}>Visitante</Text>
+                    <Text style={styles.userName}>LOGIN</Text>
                   </>
                 )}
               </TouchableOpacity>

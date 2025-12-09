@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,23 +11,26 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAppStore } from '../../store/useAppStore';
-import { productApi } from '../../services/api';
+import { productApi, sellerApi } from '../../services/api';
 
 // Categories and Subcategories based on Buyer Dashboard (first 4 items only)
 const CATEGORIES = ['Masculino', 'Feminino', 'Formatura', 'Casamento'];
 
 const SUBCATEGORIES: { [key: string]: string[] } = {
-  'Masculino': ['Anéis', 'Colares', 'Pulseiras', 'Brincos'],
-  'Feminino': ['Anéis', 'Colares', 'Pulseiras', 'Brincos'],
-  'Formatura': ['Anéis', 'Medalhas', 'Broches', 'Abotoaduras'],
-  'Casamento': ['Alianças', 'Conjuntos', 'Tiaras', 'Pulseiras'],
+  'Masculino': ['Anéis', 'Colares', 'Pulseiras'],
+  'Feminino': ['Anéis', 'Colares', 'Pulseiras'],
+  'Formatura': ['Anéis', 'Medalhas', 'Broches'],
+  'Casamento': ['Alianças', 'Conjuntos', 'Tiaras'],
 };
 
 export default function ProductFormScreen() {
   const router = useRouter();
+  const { productId } = useLocalSearchParams<{ productId?: string }>();
   const { authToken } = useAppStore();
+
+  const isEditMode = !!productId;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -41,8 +44,49 @@ export default function ProductFormScreen() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [loadingProduct, setLoadingProduct] = useState(isEditMode);
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [subcategoryDropdownOpen, setSubcategoryDropdownOpen] = useState(false);
+  const [originalStatus, setOriginalStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isEditMode && authToken && productId) {
+      fetchProduct();
+    }
+  }, [isEditMode, productId, authToken]);
+
+  const fetchProduct = async () => {
+    if (!authToken || !productId) return;
+
+    try {
+      setLoadingProduct(true);
+      const response = await sellerApi.getProducts(authToken, {});
+      const product = response.data?.find((p: any) => String(p.id) === productId);
+
+      if (product) {
+        setOriginalStatus(product.status);
+        setFormData({
+          name: product.name || '',
+          description: product.description || '',
+          category: product.category || 'Masculino',
+          subcategory: product.subcategory || SUBCATEGORIES[product.category || 'Masculino'][0],
+          base_price: product.base_price?.toString() || '',
+          gold_weight_grams: product.gold_weight_grams?.toString() || '',
+          gold_karat: product.gold_karat || '18k',
+          stock_quantity: product.stock_quantity?.toString() || '1',
+        });
+      } else {
+        Alert.alert('Erro', 'Produto não encontrado');
+        router.back();
+      }
+    } catch (error: any) {
+      console.error('Error fetching product:', error);
+      Alert.alert('Erro', error.message || 'Falha ao carregar produto');
+      router.back();
+    } finally {
+      setLoadingProduct(false);
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -79,6 +123,23 @@ export default function ProductFormScreen() {
       return;
     }
 
+    // If editing an approved product, warn user
+    if (isEditMode && originalStatus === 'approved') {
+      Alert.alert(
+        'Atenção',
+        'Ao editar um produto aprovado, ele será enviado novamente para aprovação. Deseja continuar?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Continuar', onPress: () => submitForm() },
+        ]
+      );
+      return;
+    }
+
+    await submitForm();
+  };
+
+  const submitForm = async () => {
     setLoading(true);
 
     try {
@@ -93,25 +154,43 @@ export default function ProductFormScreen() {
         stock_quantity: parseInt(formData.stock_quantity),
       };
 
-      await productApi.createProduct(authToken, productData);
+      if (isEditMode && productId) {
+        const response = await productApi.updateProduct(authToken!, parseInt(productId), productData);
 
-      Alert.alert(
-        'Sucesso!',
-        'Produto criado com sucesso! Aguardando aprovação do administrador.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.back(),
-          },
-        ]
-      );
+        const message = response.requires_approval
+          ? 'Produto atualizado! Como houve alterações, ele foi enviado para re-aprovação.'
+          : 'Produto atualizado com sucesso!';
+
+        Alert.alert('Sucesso!', message, [
+          { text: 'OK', onPress: () => router.back() },
+        ]);
+      } else {
+        await productApi.createProduct(authToken!, productData);
+
+        Alert.alert(
+          'Sucesso!',
+          'Produto criado com sucesso! Aguardando aprovação do administrador.',
+          [{ text: 'OK', onPress: () => router.back() }]
+        );
+      }
     } catch (error: any) {
-      console.error('Error creating product:', error);
-      Alert.alert('Erro', error.message || 'Falha ao criar produto');
+      console.error('Error saving product:', error);
+      Alert.alert('Erro', error.message || 'Falha ao salvar produto');
     } finally {
       setLoading(false);
     }
   };
+
+  if (loadingProduct) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2563eb" />
+          <Text style={styles.loadingText}>Carregando produto...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -120,11 +199,52 @@ export default function ProductFormScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#111827" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Adicionar Produto</Text>
+        <Text style={styles.headerTitle}>
+          {isEditMode ? 'Editar Produto' : 'Adicionar Produto'}
+        </Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
+        {/* Status Badge for Edit Mode */}
+        {isEditMode && originalStatus && (
+          <View style={styles.statusContainer}>
+            <View
+              style={[
+                styles.statusBadge,
+                {
+                  backgroundColor:
+                    originalStatus === 'approved'
+                      ? '#dcfce7'
+                      : originalStatus === 'pending'
+                      ? '#fef3c7'
+                      : '#fef2f2',
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusText,
+                  {
+                    color:
+                      originalStatus === 'approved'
+                        ? '#16a34a'
+                        : originalStatus === 'pending'
+                        ? '#ca8a04'
+                        : '#dc2626',
+                  },
+                ]}
+              >
+                {originalStatus === 'approved'
+                  ? 'Aprovado'
+                  : originalStatus === 'pending'
+                  ? 'Pendente'
+                  : 'Rejeitado'}
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Product Name */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>
@@ -313,8 +433,9 @@ export default function ProductFormScreen() {
         <View style={styles.infoBox}>
           <Ionicons name="information-circle" size={20} color="#2563eb" />
           <Text style={styles.infoText}>
-            Seu produto será enviado para aprovação do administrador antes de ficar visível
-            aos compradores.
+            {isEditMode && originalStatus === 'approved'
+              ? 'Ao editar um produto aprovado, ele será enviado novamente para aprovação do administrador.'
+              : 'Seu produto será enviado para aprovação do administrador antes de ficar visível aos compradores.'}
           </Text>
         </View>
 
@@ -329,7 +450,9 @@ export default function ProductFormScreen() {
           ) : (
             <>
               <Ionicons name="checkmark-circle" size={20} color="#ffffff" />
-              <Text style={styles.submitButtonText}>Criar Produto</Text>
+              <Text style={styles.submitButtonText}>
+                {isEditMode ? 'Salvar Alterações' : 'Criar Produto'}
+              </Text>
             </>
           )}
         </TouchableOpacity>
@@ -367,6 +490,30 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  statusContainer: {
+    marginBottom: 16,
+    alignItems: 'flex-start',
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   inputGroup: {
     marginBottom: 20,

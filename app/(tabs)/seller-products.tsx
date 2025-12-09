@@ -231,7 +231,15 @@ export default function SellerProductsScreen() {
         ) : (
           <View style={styles.productsGrid}>
             {products.map((product) => (
-              <View key={product.id} style={styles.productCard}>
+              <TouchableOpacity
+                key={product.id}
+                style={styles.productCard}
+                onPress={() => router.push({
+                  pathname: '/seller/product-form',
+                  params: { productId: String(product.id) }
+                })}
+                activeOpacity={0.7}
+              >
                 <View style={styles.productHeader}>
                   <View
                     style={[
@@ -250,6 +258,9 @@ export default function SellerProductsScreen() {
                       <Text style={styles.inactiveText}>Inativo</Text>
                     </View>
                   )}
+                  <View style={styles.editIconContainer}>
+                    <Ionicons name="create-outline" size={18} color="#2563eb" />
+                  </View>
                 </View>
 
                 <Text style={styles.productName} numberOfLines={2}>
@@ -279,7 +290,7 @@ export default function SellerProductsScreen() {
                     Criado em {new Date(product.created_at).toLocaleDateString('pt-BR')}
                   </Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         )}
@@ -472,6 +483,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#92400e',
     textTransform: 'uppercase',
+  },
+  editIconContainer: {
+    marginLeft: 'auto',
+    padding: 4,
   },
   productName: {
     fontSize: 16,

@@ -38,6 +38,11 @@ export default function Register() {
       return;
     }
 
+    if (!acceptedTerms) {
+      Alert.alert('Erro', 'Você precisa aceitar os Termos de Uso para continuar');
+      return;
+    }
+
     try {
       // If seller, just navigate to detail pages without registering yet
       if (role === 'seller') {

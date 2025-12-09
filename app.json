@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "Fala_Shop",
-    "slug": "fala",
+    "name": "Perfect Jewel",
+    "slug": "perfect-jewel",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "automatic",
-    "scheme": "fala",
+    "scheme": "perfectjewel",
     "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash.png",
@@ -15,14 +15,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourcompany.fala"
+      "bundleIdentifier": "com.perfectjewel.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.yourcompany.falashop"
+      "package": "com.perfectjewel.app"
     },
     "web": {
       "favicon": "./assets/splash.png"

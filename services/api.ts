@@ -206,6 +206,27 @@ export const productApi = {
       body: JSON.stringify(productData),
     });
   },
+
+  // Update product (seller only)
+  updateProduct: async (token: string, productId: number, productData: any): Promise<any> => {
+    return await apiCall<any>(`/products/${productId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(productData),
+    });
+  },
+
+  // Delete product (seller only)
+  deleteProduct: async (token: string, productId: number): Promise<any> => {
+    return await apiCall<any>(`/products/${productId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
 };
 
 // Transform Laravel Product to Frontend Product interface

@@ -214,23 +214,35 @@ export const useAppStore = create<AppState>((set, get) => ({
       const token = await AsyncStorage.getItem('authToken');
 
       if (token) {
-        // Verify token and get user
-        const user = await authApi.getMe(token);
+        // Optimistically set token and mark as authenticated
+        // This allows the app to load immediately
         set({
-          currentUser: user,
           authToken: token,
           isAuthenticated: true,
         });
+
+        // Verify token with API in background (non-blocking for splash)
+        // This happens after the splash screen is dismissed
+        setTimeout(async () => {
+          try {
+            const user = await authApi.getMe(token);
+            set({
+              currentUser: user,
+            });
+          } catch (error) {
+            // Token invalid or expired, clear auth state
+            await AsyncStorage.removeItem('authToken');
+            await AsyncStorage.removeItem('rememberMe');
+            set({
+              currentUser: null,
+              authToken: null,
+              isAuthenticated: false,
+            });
+          }
+        }, 0);
       }
     } catch (error) {
-      // Token invalid or expired, clear storage
-      await AsyncStorage.removeItem('authToken');
-      await AsyncStorage.removeItem('rememberMe');
-      set({
-        currentUser: null,
-        authToken: null,
-        isAuthenticated: false,
-      });
+      console.error('Auth check failed:', error);
     }
   },
 
@@ -245,25 +257,37 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const products = await productApi.getAll();
 
-      // Add mock categories and limit images (backend provides 3D model)
-      const categories = ['male', 'female', 'graduation', 'wedding'];
-      const subcategories: Record<string, string[]> = {
-        male: ['rings', 'necklaces', 'bracelets', 'earrings', 'watches', 'chains'],
-        female: ['rings', 'necklaces', 'bracelets', 'earrings', 'anklets', 'pendants'],
-        graduation: ['rings', 'medals', 'pins', 'cufflinks', 'pendants', 'sets'],
-        wedding: ['rings', 'sets', 'tiaras', 'bracelets', 'earrings', 'necklaces'],
+      // Map backend category names (Portuguese) to frontend filter IDs (English)
+      const categoryMap: Record<string, string> = {
+        'Masculino': 'male',
+        'Feminino': 'female',
+        'Formatura': 'graduation',
+        'Casamento': 'wedding',
       };
 
-      const productsWithMedia = products.map((p, idx) => {
-        const category = categories[idx % categories.length];
-        const subcat = subcategories[category][idx % subcategories[category].length];
+      // Map backend subcategory names (Portuguese) to frontend filter IDs (English)
+      const subcategoryMap: Record<string, string> = {
+        'Anéis': 'rings',
+        'Colares': 'necklaces',
+        'Pulseiras': 'bracelets',
+        'Medalhas': 'medals',
+        'Broches': 'pins',
+        'Alianças': 'rings',
+        'Conjuntos': 'sets',
+        'Tiaras': 'tiaras',
+      };
+
+      const productsWithMedia = products.map((p) => {
+        // Map backend categories to frontend filter IDs
+        const mappedCategory = categoryMap[p.category] || p.category?.toLowerCase() || 'male';
+        const mappedSubcategory = subcategoryMap[p.subcategory] || p.subcategory?.toLowerCase() || 'rings';
 
         return {
           ...p,
-          category,
-          subcategory: subcat,
-          images: p.images.slice(0, 3),
-          videos: p.videos?.length > 0 ? p.videos : ['https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'],
+          category: mappedCategory,
+          subcategory: mappedSubcategory,
+          images: p.images?.slice(0, 3) || [],
+          videos: p.videos?.length > 0 ? p.videos : [],
         };
       });
 
