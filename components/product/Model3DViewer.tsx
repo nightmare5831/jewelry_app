@@ -20,7 +20,14 @@ export default function Model3DViewer({ modelUrl, height }: Model3DViewerProps) 
     <head>
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
       <style>
-        body { margin: 0; overflow: hidden; background: #f5f5f5; display: flex; align-items: center; justify-content: center; }
+        body {
+          margin: 0;
+          overflow: hidden;
+          background: #e8e8e8;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
         #canvas { width: 100%; height: 100vh; display: block; }
         #error { color: red; padding: 20px; text-align: center; font-family: sans-serif; display: none; }
         #loading { color: #666; padding: 20px; text-align: center; font-family: sans-serif; }
@@ -40,6 +47,7 @@ export default function Model3DViewer({ modelUrl, height }: Model3DViewerProps) 
       <script type="module">
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         function showError(msg) {
           document.getElementById('loading').style.display = 'none';
@@ -50,26 +58,79 @@ export default function Model3DViewer({ modelUrl, height }: Model3DViewerProps) 
 
         try {
           const scene = new THREE.Scene();
-          scene.background = new THREE.Color(0xf5f5f5);
+
+          // Light gray background to make gold model pop
+          scene.background = new THREE.Color(0xe8e8e8);
 
           const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
           camera.position.z = 5;
 
-          const renderer = new THREE.WebGLRenderer({ antialias: true });
+          const renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: false
+          });
           renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.outputColorSpace = THREE.SRGBColorSpace;
+          renderer.shadowMap.enabled = true;
+          renderer.shadowMap.type = THREE.PCFSoftShadowMap;
           document.body.appendChild(renderer.domElement);
 
-          // Brighter lighting
-          const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+          // Add OrbitControls for zoom and manual rotation
+          const controls = new OrbitControls(camera, renderer.domElement);
+          controls.enableDamping = true;
+          controls.dampingFactor = 0.05;
+          controls.minDistance = 2;
+          controls.maxDistance = 10;
+          controls.enablePan = false;
+          controls.autoRotate = true;
+          controls.autoRotateSpeed = 2.0;
+
+          // MAXIMUM ambient lighting for brightest base illumination
+          const ambientLight = new THREE.AmbientLight(0xffffff, 4.0);
           scene.add(ambientLight);
 
-          const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1.0);
-          directionalLight1.position.set(10, 10, 5);
-          scene.add(directionalLight1);
+          // MAXIMUM hemisphere light for better diffusion
+          const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 3.5);
+          scene.add(hemiLight);
 
-          const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
-          directionalLight2.position.set(-10, -10, -5);
-          scene.add(directionalLight2);
+          // MAXIMUM directional lights with wider coverage area and shadows
+          const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.0);
+          dirLight1.position.set(5, 5, 5);
+          dirLight1.castShadow = true;
+          dirLight1.shadow.mapSize.width = 2048;
+          dirLight1.shadow.mapSize.height = 2048;
+          dirLight1.shadow.camera.near = 0.5;
+          dirLight1.shadow.camera.far = 50;
+          dirLight1.shadow.camera.left = -10;
+          dirLight1.shadow.camera.right = 10;
+          dirLight1.shadow.camera.top = 10;
+          dirLight1.shadow.camera.bottom = -10;
+          scene.add(dirLight1);
+
+          const dirLight2 = new THREE.DirectionalLight(0xffffff, 1.8);
+          dirLight2.position.set(-5, 5, 5);
+          scene.add(dirLight2);
+
+          const dirLight3 = new THREE.DirectionalLight(0xffffff, 1.8);
+          dirLight3.position.set(5, -5, 5);
+          scene.add(dirLight3);
+
+          const dirLight4 = new THREE.DirectionalLight(0xffffff, 1.8);
+          dirLight4.position.set(-5, -5, 5);
+          scene.add(dirLight4);
+
+          const dirLight5 = new THREE.DirectionalLight(0xffffff, 1.5);
+          dirLight5.position.set(0, 0, -5);
+          scene.add(dirLight5);
+
+          // Add ground plane to receive shadows
+          const groundGeometry = new THREE.PlaneGeometry(20, 20);
+          const groundMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
+          const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+          ground.rotation.x = -Math.PI / 2;
+          ground.position.y = -2;
+          ground.receiveShadow = true;
+          scene.add(ground);
 
           let model;
           const loader = new GLTFLoader();
@@ -90,6 +151,15 @@ export default function Model3DViewer({ modelUrl, height }: Model3DViewerProps) 
               document.getElementById('loading').style.display = 'none';
 
               model = gltf.scene;
+
+              // Enable shadows on model
+              model.traverse((child) => {
+                if (child.isMesh) {
+                  console.log('Mesh:', child.name, 'Color:', child.material?.color);
+                  child.castShadow = true;
+                  child.receiveShadow = true;
+                }
+              });
 
               // Center and scale model
               const box = new THREE.Box3().setFromObject(model);
@@ -123,7 +193,7 @@ export default function Model3DViewer({ modelUrl, height }: Model3DViewerProps) 
 
           function animate() {
             requestAnimationFrame(animate);
-            if (model) model.rotation.y += 0.01;
+            controls.update();
             renderer.render(scene, camera);
           }
           animate();
@@ -204,7 +274,9 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#e8e8e8',
+    borderWidth: 2,
+    borderColor: '#d1d5db',
   },
   webview: {
     flex: 1,
