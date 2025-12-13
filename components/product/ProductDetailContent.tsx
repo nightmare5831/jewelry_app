@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -8,12 +8,23 @@ import type { Product } from '../../data/products';
 interface ProductDetailContentProps {
   product: Product;
   compact?: boolean; // For showing in index page detail mode
+  onCustomizationChange?: (customization: RingCustomization) => void;
 }
 
-export default function ProductDetailContent({ product, compact = false }: ProductDetailContentProps) {
+export interface RingCustomization {
+  size?: string;
+  size_1?: string;
+  name_1?: string;
+  size_2?: string;
+  name_2?: string;
+}
+
+export default function ProductDetailContent({ product, compact = false, onCustomizationChange }: ProductDetailContentProps) {
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
     reviews: false,
   });
+
+  const [customization, setCustomization] = useState<RingCustomization>({});
 
   const sellerName = product.seller?.name || 'Joalheria Premium';
   const sellerRating = product.seller?.rating || 4.5;
@@ -26,6 +37,15 @@ export default function ProductDetailContent({ product, compact = false }: Produ
       [section]: !prev[section]
     }));
   };
+
+  const updateCustomization = (field: keyof RingCustomization, value: string) => {
+    const updated = { ...customization, [field]: value };
+    setCustomization(updated);
+    onCustomizationChange?.(updated);
+  };
+
+  const needsRingSize = (product.category === 'Male' || product.category === 'Female') && product.subcategory === 'Rings';
+  const needsWeddingCustomization = product.category === 'Wedding Rings';
 
   const containerStyle = compact ? styles.contentCompact : styles.content;
 
@@ -108,6 +128,60 @@ export default function ProductDetailContent({ product, compact = false }: Produ
         <Text style={styles.descriptionLabel}>Descrição:</Text>
         <Text style={styles.descriptionText}>{product.description}</Text>
       </View>
+
+      {/* Ring Customization Fields */}
+      {needsRingSize && (
+        <View style={styles.customizationBox}>
+          <Text style={styles.customizationLabel}>Tamanho do Anel:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex: 18"
+            value={customization.size || ''}
+            onChangeText={(value) => updateCustomization('size', value)}
+            keyboardType="numeric"
+          />
+        </View>
+      )}
+
+      {needsWeddingCustomization && (
+        <View style={styles.customizationBox}>
+          <Text style={styles.customizationLabel}>Alianças de Casamento:</Text>
+
+          <View style={styles.ringPairContainer}>
+            <Text style={styles.ringLabel}>Aliança Masculina:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Tamanho (Ex: 21)"
+              value={customization.size_1 || ''}
+              onChangeText={(value) => updateCustomization('size_1', value)}
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Nome para gravação (Ex: João)"
+              value={customization.name_1 || ''}
+              onChangeText={(value) => updateCustomization('name_1', value)}
+            />
+          </View>
+
+          <View style={styles.ringPairContainer}>
+            <Text style={styles.ringLabel}>Aliança Feminina:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Tamanho (Ex: 18)"
+              value={customization.size_2 || ''}
+              onChangeText={(value) => updateCustomization('size_2', value)}
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Nome para gravação (Ex: Maria)"
+              value={customization.name_2 || ''}
+              onChangeText={(value) => updateCustomization('name_2', value)}
+            />
+          </View>
+        </View>
+      )}
 
       {/* 9. Expandable Sections */}
       <View style={styles.expandableContainer}>
@@ -320,5 +394,36 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: 14,
     color: '#666',
+  },
+  customizationBox: {
+    backgroundColor: '#F2F2F2',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 15,
+  },
+  customizationLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 12,
+  },
+  ringPairContainer: {
+    marginBottom: 16,
+  },
+  ringLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#DDDDDD',
+    padding: 12,
+    fontSize: 14,
+    color: '#000',
+    marginBottom: 8,
   },
 });
