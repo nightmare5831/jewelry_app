@@ -1,9 +1,10 @@
 import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import type { Product } from '../../data/products';
+import { API_CONFIG } from '../../config/api';
 
 interface ProductDetailContentProps {
   product: Product;
@@ -20,23 +21,28 @@ export interface RingCustomization {
 }
 
 export default function ProductDetailContent({ product, compact = false, onCustomizationChange }: ProductDetailContentProps) {
-  const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
-    reviews: false,
-  });
-
   const [customization, setCustomization] = useState<RingCustomization>({});
+  const [productRating, setProductRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
 
   const sellerName = product.seller?.name || 'Joalheria Premium';
-  const sellerRating = product.seller?.rating || 4.5;
   const sellerInitial = sellerName.charAt(0).toUpperCase();
   const installmentPrice = (product.price / 12).toFixed(2);
 
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
+  // Fetch average rating from reviews API
+  useEffect(() => {
+    const fetchRating = async () => {
+      try {
+        const response = await fetch(`${API_CONFIG.BASE_URL}/products/${product.id}/reviews`);
+        const data = await response.json();
+        setProductRating(data.average_rating || 0);
+        setReviewCount(data.total_reviews || 0);
+      } catch (error) {
+        console.error('Failed to fetch product rating:', error);
+      }
+    };
+    fetchRating();
+  }, [product.id]);
 
   const updateCustomization = (field: keyof RingCustomization, value: string) => {
     const updated = { ...customization, [field]: value };
@@ -60,7 +66,7 @@ export default function ProductDetailContent({ product, compact = false, onCusto
           <Text style={styles.sellerName}>{sellerName}</Text>
           <View style={styles.sellerRating}>
             <Ionicons name="star" size={16} color="#FFCC00" />
-            <Text style={styles.ratingText}>{sellerRating}</Text>
+            <Text style={styles.ratingText}>{productRating.toFixed(1)}</Text>
           </View>
         </View>
       </View>
@@ -202,26 +208,18 @@ export default function ProductDetailContent({ product, compact = false, onCusto
 
         <View style={styles.divider} />
 
-        {/* Reviews Section */}
+        {/* Reviews Section - Navigate to Reviews Page */}
         <TouchableOpacity
           style={styles.expandableHeader}
-          onPress={() => toggleSection('reviews')}
+          onPress={() => router.push(`/reviews/${product.id}?productName=${encodeURIComponent(product.name)}`)}
         >
           <Text style={styles.expandableTitle}>Avaliações</Text>
           <Ionicons
-            name={expandedSections.reviews ? 'chevron-up' : 'chevron-down'}
+            name="chevron-forward"
             size={14}
             color="#000"
           />
         </TouchableOpacity>
-
-        {expandedSections.reviews && (
-          <View style={styles.expandableContent}>
-            <Text style={styles.placeholderText}>
-              Nenhuma avaliação ainda. Seja o primeiro a avaliar!
-            </Text>
-          </View>
-        )}
 
         <View style={styles.divider} />
       </View>
