@@ -8,7 +8,7 @@ import { orderApi, type ShippingAddress } from '../services/api';
 export default function CheckoutScreen() {
   const { cart, authToken, isAuthenticated, fetchCart, fetchOrders } = useAppStore();
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'credit_card' | 'boleto'>('credit_card');
+  const [paymentMethod] = useState<'pix' | 'credit_card' | 'boleto'>('credit_card');
 
   const [address, setAddress] = useState<ShippingAddress>({
     street: '',
@@ -17,6 +17,16 @@ export default function CheckoutScreen() {
     postal_code: '',
     country: 'Brazil',
   });
+
+  const fillMockData = () => {
+    setAddress({
+      street: 'Rua das Flores, 123',
+      city: 'São Paulo',
+      state: 'SP',
+      postal_code: '01310-100',
+      country: 'Brazil',
+    });
+  };
 
   // Require authentication for checkout
   if (!isAuthenticated || !authToken) {
@@ -133,7 +143,16 @@ export default function CheckoutScreen() {
 
         {/* Shipping Address */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Shipping Address</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Shipping Address</Text>
+            <TouchableOpacity
+              style={styles.mockDataButton}
+              onPress={fillMockData}
+            >
+              <Ionicons name="flash" size={16} color="#3b82f6" />
+              <Text style={styles.mockDataButtonText}>Mock Data</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
@@ -166,53 +185,18 @@ export default function CheckoutScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Payment Method</Text>
 
-          <TouchableOpacity
-            style={[styles.paymentOption, paymentMethod === 'credit_card' && styles.paymentOptionSelected]}
-            onPress={() => setPaymentMethod('credit_card')}
-          >
+          <View style={[styles.paymentOption, styles.paymentOptionSelected]}>
             <Ionicons
-              name={paymentMethod === 'credit_card' ? 'radio-button-on' : 'radio-button-off'}
+              name="radio-button-on"
               size={24}
-              color={paymentMethod === 'credit_card' ? '#D4AF37' : '#666'}
+              color="#D4AF37"
             />
             <View style={styles.paymentInfo}>
               <Text style={styles.paymentTitle}>Credit Card</Text>
               <Text style={styles.paymentSubtitle}>Pay securely with your card</Text>
             </View>
             <Ionicons name="card-outline" size={32} color="#666" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.paymentOption, paymentMethod === 'pix' && styles.paymentOptionSelected]}
-            onPress={() => setPaymentMethod('pix')}
-          >
-            <Ionicons
-              name={paymentMethod === 'pix' ? 'radio-button-on' : 'radio-button-off'}
-              size={24}
-              color={paymentMethod === 'pix' ? '#D4AF37' : '#666'}
-            />
-            <View style={styles.paymentInfo}>
-              <Text style={styles.paymentTitle}>PIX</Text>
-              <Text style={styles.paymentSubtitle}>Instant payment</Text>
-            </View>
-            <Ionicons name="flash-outline" size={32} color="#666" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.paymentOption, paymentMethod === 'boleto' && styles.paymentOptionSelected]}
-            onPress={() => setPaymentMethod('boleto')}
-          >
-            <Ionicons
-              name={paymentMethod === 'boleto' ? 'radio-button-on' : 'radio-button-off'}
-              size={24}
-              color={paymentMethod === 'boleto' ? '#D4AF37' : '#666'}
-            />
-            <View style={styles.paymentInfo}>
-              <Text style={styles.paymentTitle}>Boleto</Text>
-              <Text style={styles.paymentSubtitle}>Pay with bank slip</Text>
-            </View>
-            <Ionicons name="document-text-outline" size={32} color="#666" />
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Order Total */}
@@ -297,11 +281,30 @@ const styles = StyleSheet.create({
     marginTop: 16,
     padding: 16,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 12,
+  },
+  mockDataButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#eff6ff',
+    borderRadius: 6,
+    gap: 4,
+  },
+  mockDataButtonText: {
+    fontSize: 14,
+    color: '#3b82f6',
+    fontWeight: '600',
   },
   summaryCard: {
     flexDirection: 'row',
@@ -448,7 +451,7 @@ const styles = StyleSheet.create({
   },
   placeOrderButton: {
     flexDirection: 'row',
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#000000',
     paddingVertical: 16,
     borderRadius: 8,
     justifyContent: 'center',

@@ -7,10 +7,12 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
-  Linking,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { WebView } from 'react-native-webview';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { paymentApi } from '../../services/api';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -22,16 +24,10 @@ export default function PaymentScreen() {
   const [loading, setLoading] = useState(false);
   const [paymentIntent, setPaymentIntent] = useState<any>(null);
   const [paymentStatus, setPaymentStatus] = useState<string>('pending');
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [showWebView, setShowWebView] = useState(false);
 
   useEffect(() => {
     createPaymentIntent();
-
-    return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
-    };
   }, []);
 
   const createPaymentIntent = async () => {
@@ -41,60 +37,11 @@ export default function PaymentScreen() {
     try {
       const response = await paymentApi.createPaymentIntent(authToken, parseInt(orderId));
       setPaymentIntent(response);
-
-      // Start polling payment status
-      startPolling(response.payment.id);
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to create payment');
     } finally {
       setLoading(false);
     }
-  };
-
-  const startPolling = (paymentId: number) => {
-    const interval = setInterval(async () => {
-      try {
-        if (!authToken) return;
-
-        const payment = await paymentApi.getPaymentStatus(authToken, paymentId);
-        setPaymentStatus(payment.status);
-
-        if (payment.status === 'completed') {
-          clearInterval(interval);
-          await fetchOrders();
-          Alert.alert(
-            'Payment Successful!',
-            'Your payment has been completed. Order is now confirmed.',
-            [
-              {
-                text: 'View Orders',
-                onPress: () => router.replace('/orders'),
-              },
-            ]
-          );
-        } else if (payment.status === 'failed') {
-          clearInterval(interval);
-          Alert.alert(
-            'Payment Failed',
-            'Your payment could not be processed. Please try again.',
-            [
-              {
-                text: 'Retry Payment',
-                onPress: () => handleRetryPayment(paymentId),
-              },
-              {
-                text: 'Cancel',
-                style: 'cancel',
-              },
-            ]
-          );
-        }
-      } catch (error) {
-        console.error('Error polling payment status:', error);
-      }
-    }, 3000); // Poll every 3 seconds
-
-    setPollingInterval(interval);
   };
 
   const handleRetryPayment = async (paymentId: number) => {
@@ -113,39 +60,107 @@ export default function PaymentScreen() {
   };
 
   const handleOpenPaymentLink = () => {
-    if (!paymentIntent?.init_point) {
+    if (!paymentIntent?.init_point && !paymentIntent?.sandbox_init_point) {
       Alert.alert('Error', 'Payment link not available');
       return;
     }
 
-    // In production, use init_point. For testing, use sandbox_init_point
-    const paymentUrl = paymentIntent.sandbox_init_point || paymentIntent.init_point;
+    // Open WebView modal instead of external browser
+    setShowWebView(true);
+  };
 
-    // Mock payment for development (if no Mercado Pago keys configured)
-    if (paymentUrl.includes('mock') || !paymentUrl.startsWith('http')) {
+  const handleWebViewNavigationChange = (navState: any) => {
+    const { url } = navState;
+
+    console.log('🔍 WebView navigation:', {
+      url,
+      navigationType: navState.navigationType,
+      loading: navState.loading,
+      canGoBack: navState.canGoBack,
+      title: navState.title,
+    });
+
+    // Parse URL to check for Mercado Pago callback parameters
+    const urlObj = new URL(url);
+    const urlParams = new URLSearchParams(urlObj.search);
+    const collectionStatus = urlParams.get('collection_status');
+    const paymentStatus = urlParams.get('status');
+    const paymentId = urlParams.get('payment_id');
+
+    console.log('📋 URL params:', {
+      collectionStatus,
+      paymentStatus,
+      paymentId,
+      pathname: urlObj.pathname,
+      host: urlObj.host,
+    });
+
+    // Detect payment success - deep link or URL patterns
+    const isSuccess =
+      url.includes('perfectjewel://payment-success') ||
+      url.includes('status=approved') ||
+      collectionStatus === 'approved' ||
+      paymentStatus === 'approved';
+
+    // Detect payment failure
+    const isFailure =
+      url.includes('perfectjewel://payment-failure') ||
+      url.includes('status=rejected') ||
+      collectionStatus === 'rejected' ||
+      paymentStatus === 'rejected';
+
+    // Detect payment pending
+    const isPending =
+      url.includes('perfectjewel://payment-pending') ||
+      url.includes('status=pending') ||
+      collectionStatus === 'pending' ||
+      paymentStatus === 'pending' ||
+      paymentStatus === 'in_process';
+
+    if (isSuccess) {
+      console.log('✅ Payment Success Detected!', paymentId);
+      setShowWebView(false);
+      setPaymentStatus('completed');
+
+      setTimeout(async () => {
+        await fetchOrders();
+        Alert.alert(
+          'Pagamento Concluído!',
+          'Seu pagamento foi processado com sucesso.',
+          [
+            {
+              text: 'Ver Pedidos',
+              onPress: () => router.replace('/orders'),
+            },
+          ]
+        );
+      }, 500);
+    } else if (isFailure) {
+      console.log('❌ Payment Failure Detected!', paymentId);
+      setShowWebView(false);
+      setPaymentStatus('failed');
+
       Alert.alert(
-        'Mock Payment (Development)',
-        'In production, this would redirect to Mercado Pago. For now, simulate payment completion?',
+        'Pagamento Falhou',
+        'Não foi possível processar seu pagamento. Por favor, tente novamente.',
         [
           {
-            text: 'Simulate Success',
-            onPress: () => simulatePaymentSuccess(),
+            text: 'Tentar Novamente',
+            onPress: () => handleRetryPayment(paymentIntent.payment.id),
           },
           {
-            text: 'Simulate Failure',
-            onPress: () => simulatePaymentFailure(),
-            style: 'destructive',
-          },
-          {
-            text: 'Cancel',
+            text: 'Cancelar',
             style: 'cancel',
           },
         ]
       );
-    } else {
-      Linking.openURL(paymentUrl).catch(() => {
-        Alert.alert('Error', 'Could not open payment page');
-      });
+    } else if (isPending) {
+      console.log('⏳ Payment Pending Detected!', paymentId);
+      setShowWebView(false);
+      Alert.alert(
+        'Pagamento Pendente',
+        'Seu pagamento está sendo processado. Você receberá uma notificação quando for confirmado.'
+      );
     }
   };
 
@@ -315,6 +330,72 @@ export default function PaymentScreen() {
           Your payment is processed securely through Mercado Pago. You will receive a confirmation email once the payment is completed.
         </Text>
       </View>
+
+      {/* WebView Modal for Payment */}
+      <Modal
+        visible={showWebView}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <SafeAreaView style={styles.webViewContainer}>
+          <View style={styles.webViewHeader}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowWebView(false)}
+            >
+              <Ionicons name="close" size={28} color="#000" />
+            </TouchableOpacity>
+            <Text style={styles.webViewTitle}>Pagamento</Text>
+            <View style={{ width: 40 }} />
+          </View>
+          <WebView
+            source={{ uri: paymentIntent?.sandbox_init_point || paymentIntent?.init_point }}
+            onNavigationStateChange={handleWebViewNavigationChange}
+            startInLoadingState={true}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            thirdPartyCookiesEnabled={true}
+            sharedCookiesEnabled={true}
+            mixedContentMode="always"
+            allowsInlineMediaPlayback={true}
+            mediaPlaybackRequiresUserAction={false}
+            setSupportMultipleWindows={false}
+            onShouldStartLoadWithRequest={(request) => {
+              console.log('🚀 Should start load:', {
+                url: request.url,
+                navigationType: request.navigationType,
+                mainDocumentURL: request.mainDocumentURL,
+              });
+              // Allow all navigation
+              return true;
+            }}
+            onError={(syntheticEvent) => {
+              const { nativeEvent } = syntheticEvent;
+              console.error('WebView error:', nativeEvent);
+            }}
+            onHttpError={(syntheticEvent) => {
+              const { nativeEvent } = syntheticEvent;
+              console.error('WebView HTTP error:', nativeEvent.statusCode);
+            }}
+            onLoadProgress={({ nativeEvent }) => {
+              console.log('⏳ WebView load progress:', {
+                progress: nativeEvent.progress,
+                url: nativeEvent.url,
+                title: nativeEvent.title,
+              });
+            }}
+            onMessage={(event) => {
+              console.log('📨 WebView message:', event.nativeEvent.data);
+            }}
+            renderLoading={() => (
+              <View style={styles.webViewLoading}>
+                <ActivityIndicator size="large" color="#C8A870" />
+                <Text style={styles.webViewLoadingText}>Carregando...</Text>
+              </View>
+            )}
+          />
+        </SafeAreaView>
+      </Modal>
     </ScrollView>
   );
 }
@@ -419,7 +500,7 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   payButton: {
-    backgroundColor: '#C8A870',
+    backgroundColor: '#000000',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -447,7 +528,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   successButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#000000',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -463,7 +544,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   retryButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#000000',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -491,5 +572,41 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 12,
     lineHeight: 18,
+  },
+  webViewContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  webViewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    backgroundColor: '#fff',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  webViewTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  webViewLoading: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  webViewLoadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666',
   },
 });

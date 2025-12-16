@@ -409,6 +409,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       await cartApi.addItem(authToken, productId, quantity);
       await get().fetchCart(); // Refresh cart
     } catch (error: any) {
+      // If session expired, clear auth state
+      if (error.message?.includes('Session expired')) {
+        set({
+          currentUser: null,
+          authToken: null,
+          isAuthenticated: false,
+        });
+      }
       throw new Error(error.message || 'Failed to add to cart');
     }
   },
