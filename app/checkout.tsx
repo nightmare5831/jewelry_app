@@ -8,7 +8,6 @@ import { orderApi, type ShippingAddress } from '../services/api';
 export default function CheckoutScreen() {
   const { cart, authToken, isAuthenticated, fetchCart, fetchOrders } = useAppStore();
   const [loading, setLoading] = useState(false);
-  const [paymentMethod] = useState<'pix' | 'credit_card' | 'boleto'>('credit_card');
 
   const [address, setAddress] = useState<ShippingAddress>({
     street: '',
@@ -96,9 +95,10 @@ export default function CheckoutScreen() {
 
     setLoading(true);
     try {
+      // Create order from cart
       const response = await orderApi.createOrder(authToken, {
         shipping_address: address,
-        payment_method: paymentMethod,
+        payment_method: 'credit_card',
       });
 
       // Refresh cart and orders
@@ -181,21 +181,15 @@ export default function CheckoutScreen() {
           </View>
         </View>
 
-        {/* Payment Method */}
+        {/* Payment Method - Fixed to Credit Card */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Payment Method</Text>
-
-          <View style={[styles.paymentOption, styles.paymentOptionSelected]}>
-            <Ionicons
-              name="radio-button-on"
-              size={24}
-              color="#D4AF37"
-            />
+          <View style={styles.paymentInfoBox}>
+            <Ionicons name="card-outline" size={32} color="#D4AF37" />
             <View style={styles.paymentInfo}>
               <Text style={styles.paymentTitle}>Credit Card</Text>
-              <Text style={styles.paymentSubtitle}>Pay securely with your card</Text>
+              <Text style={styles.paymentSubtitle}>Processed securely via Mercado Pago</Text>
             </View>
-            <Ionicons name="card-outline" size={32} color="#666" />
           </View>
         </View>
 
@@ -334,19 +328,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
-  paymentOption: {
+  paymentInfoBox: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  paymentOptionSelected: {
-    borderColor: '#D4AF37',
     backgroundColor: '#fffbf0',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#D4AF37',
   },
   paymentInfo: {
     flex: 1,

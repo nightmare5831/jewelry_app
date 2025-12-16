@@ -151,37 +151,20 @@ export default function CatalogScreen() {
 
     setAddingToCart(true);
     try {
-      // Create order directly without adding to cart
-      const response = await fetch(`${API_CONFIG.BASE_URL}/orders/buy-now`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({
-          product_id: parseInt(currentProduct.id),
-          quantity: 1,
-        }),
-      });
+      // Clear cart and add only this product
+      await addToCart(parseInt(currentProduct.id), 1, true); // true = clear cart first
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Falha ao criar pedido');
-      }
-
-      // Navigate directly to payment page
-      router.push(`/payment/${data.order.id}`);
+      // Navigate to checkout
+      router.push('/checkout');
     } catch (error: any) {
       console.error('❌ Buy now error:', error);
 
-      // Check if it's an auth error
       if (error.message?.includes('Session expired') || error.message?.includes('Not authenticated')) {
         Alert.alert('Sessão Expirada', 'Por favor, faça login novamente', [
           { text: 'Fazer Login', onPress: () => router.push('/auth/login') },
         ]);
       } else {
-        Alert.alert('Erro', error.message || 'Falha ao criar pedido');
+        Alert.alert('Erro', error.message || 'Falha ao processar');
       }
     } finally {
       setAddingToCart(false);

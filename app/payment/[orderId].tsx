@@ -164,28 +164,6 @@ export default function PaymentScreen() {
     }
   };
 
-  const simulatePaymentSuccess = () => {
-    setPaymentStatus('completed');
-    setTimeout(async () => {
-      await fetchOrders();
-      Alert.alert(
-        'Payment Successful! (Simulated)',
-        'Your mock payment has been completed.',
-        [
-          {
-            text: 'View Orders',
-            onPress: () => router.replace('/orders'),
-          },
-        ]
-      );
-    }, 1000);
-  };
-
-  const simulatePaymentFailure = () => {
-    setPaymentStatus('failed');
-    Alert.alert('Payment Failed (Simulated)', 'Mock payment failed. Please try again.');
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
