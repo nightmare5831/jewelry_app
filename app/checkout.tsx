@@ -101,17 +101,17 @@ export default function CheckoutScreen() {
         payment_method: 'credit_card',
       });
 
-      // Refresh cart and orders
-      await fetchCart();
-      await fetchOrders();
+      // Navigate to payment screen immediately
+      router.replace(`/payment/${response.order.id}`);
 
-      // Navigate to payment screen
-      router.push(`/payment/${response.order.id}`);
+      // Refresh cart and orders in background (after navigation)
+      fetchCart().catch(console.error);
+      fetchOrders().catch(console.error);
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to place order');
-    } finally {
       setLoading(false);
     }
+    // Note: Don't setLoading(false) in finally - we're navigating away
   };
 
   return (

@@ -60,7 +60,7 @@ export default function PaymentScreen() {
   };
 
   const handleOpenPaymentLink = () => {
-    if (!paymentIntent?.init_point && !paymentIntent?.sandbox_init_point) {
+    if (!paymentIntent?.init_point) {
       Alert.alert('Error', 'Payment link not available');
       return;
     }
@@ -327,7 +327,7 @@ export default function PaymentScreen() {
             <View style={{ width: 40 }} />
           </View>
           <WebView
-            source={{ uri: paymentIntent?.sandbox_init_point || paymentIntent?.init_point }}
+            source={{ uri: paymentIntent?.init_point }}
             onNavigationStateChange={handleWebViewNavigationChange}
             startInLoadingState={true}
             javaScriptEnabled={true}
