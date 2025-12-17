@@ -72,28 +72,11 @@ export default function PaymentScreen() {
   const handleWebViewNavigationChange = (navState: any) => {
     const { url } = navState;
 
-    console.log('🔍 WebView navigation:', {
-      url,
-      navigationType: navState.navigationType,
-      loading: navState.loading,
-      canGoBack: navState.canGoBack,
-      title: navState.title,
-    });
-
     // Parse URL to check for Mercado Pago callback parameters
     const urlObj = new URL(url);
     const urlParams = new URLSearchParams(urlObj.search);
     const collectionStatus = urlParams.get('collection_status');
     const paymentStatus = urlParams.get('status');
-    const paymentId = urlParams.get('payment_id');
-
-    console.log('📋 URL params:', {
-      collectionStatus,
-      paymentStatus,
-      paymentId,
-      pathname: urlObj.pathname,
-      host: urlObj.host,
-    });
 
     // Detect payment success - deep link or URL patterns
     const isSuccess =
@@ -118,7 +101,6 @@ export default function PaymentScreen() {
       paymentStatus === 'in_process';
 
     if (isSuccess) {
-      console.log('✅ Payment Success Detected!', paymentId);
       setShowWebView(false);
       setPaymentStatus('completed');
 
@@ -129,14 +111,13 @@ export default function PaymentScreen() {
           'Seu pagamento foi processado com sucesso.',
           [
             {
-              text: 'Ver Pedidos',
-              onPress: () => router.replace('/orders'),
+              text: 'Ver Perfil',
+              onPress: () => router.replace('/(tabs)/profile'),
             },
           ]
         );
       }, 500);
     } else if (isFailure) {
-      console.log('❌ Payment Failure Detected!', paymentId);
       setShowWebView(false);
       setPaymentStatus('failed');
 
@@ -155,7 +136,6 @@ export default function PaymentScreen() {
         ]
       );
     } else if (isPending) {
-      console.log('⏳ Payment Pending Detected!', paymentId);
       setShowWebView(false);
       Alert.alert(
         'Pagamento Pendente',
@@ -276,7 +256,7 @@ export default function PaymentScreen() {
       {paymentStatus === 'completed' && (
         <TouchableOpacity
           style={styles.successButton}
-          onPress={() => router.replace('/orders')}
+          onPress={() => router.replace('/(tabs)/profile')}
         >
           <Ionicons name="list" size={24} color="#fff" />
           <Text style={styles.successButtonText}>View My Orders</Text>
@@ -339,31 +319,8 @@ export default function PaymentScreen() {
             mediaPlaybackRequiresUserAction={false}
             setSupportMultipleWindows={false}
             onShouldStartLoadWithRequest={(request) => {
-              console.log('🚀 Should start load:', {
-                url: request.url,
-                navigationType: request.navigationType,
-                mainDocumentURL: request.mainDocumentURL,
-              });
               // Allow all navigation
               return true;
-            }}
-            onError={(syntheticEvent) => {
-              const { nativeEvent } = syntheticEvent;
-              console.error('WebView error:', nativeEvent);
-            }}
-            onHttpError={(syntheticEvent) => {
-              const { nativeEvent } = syntheticEvent;
-              console.error('WebView HTTP error:', nativeEvent.statusCode);
-            }}
-            onLoadProgress={({ nativeEvent }) => {
-              console.log('⏳ WebView load progress:', {
-                progress: nativeEvent.progress,
-                url: nativeEvent.url,
-                title: nativeEvent.title,
-              });
-            }}
-            onMessage={(event) => {
-              console.log('📨 WebView message:', event.nativeEvent.data);
             }}
             renderLoading={() => (
               <View style={styles.webViewLoading}>
