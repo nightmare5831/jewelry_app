@@ -28,10 +28,11 @@ export default function SellerDashboardScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isAuthenticated && authToken) {
+    // Only fetch dashboard if user is authenticated AND is a seller
+    if (isAuthenticated && authToken && currentUser?.role === 'seller') {
       fetchDashboard();
     }
-  }, [isAuthenticated, authToken]);
+  }, [isAuthenticated, authToken, currentUser]);
 
   const fetchDashboard = async () => {
     if (!authToken) return;

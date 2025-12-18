@@ -66,6 +66,7 @@ export default function PerfilScreen() {
           onPress: async () => {
             try {
               await logout();
+              // Explicitly navigate to index to avoid staying on seller-dashboard
               router.replace('/(tabs)');
             } catch (error) {
               console.error('Logout failed:', error);

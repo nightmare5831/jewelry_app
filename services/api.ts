@@ -394,6 +394,15 @@ export const messageApi = {
     });
   },
 
+  // Get all messages for the current user (when they are the seller)
+  getMyMessages: async (token: string): Promise<QAMessage[]> => {
+    return await apiCall<QAMessage[]>('/messages/my-questions', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
   createQuestion: async (token: string, toUserId: number, question: string): Promise<QAMessage> => {
     return await apiCall<QAMessage>('/messages', {
       method: 'POST',

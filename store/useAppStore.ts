@@ -191,9 +191,22 @@ export const useAppStore = create<AppState>((set, get) => ({
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      // Clear all auth-related data from AsyncStorage
       await AsyncStorage.removeItem('authToken');
+      await AsyncStorage.removeItem('currentUser');
       await AsyncStorage.removeItem('rememberMe');
-      set({ authToken: null });
+
+      // Reset all store state to initial values
+      set({
+        authToken: null,
+        cart: null,
+        cartItemsCount: 0,
+        orders: [],
+        wishlist: [],
+        sellerRegistrationData: null,
+        isAuthLoading: false,
+        error: null,
+      });
     }
   },
 

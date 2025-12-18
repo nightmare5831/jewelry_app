@@ -27,7 +27,8 @@ export default function FABMenu({ mode = 'main' }: FABMenuProps) {
         style: 'destructive',
         onPress: async () => {
           await logout();
-          router.replace('/auth/login');
+          // Explicitly navigate to index to avoid staying on seller-dashboard
+          router.replace('/(tabs)');
         },
       },
     ]);
