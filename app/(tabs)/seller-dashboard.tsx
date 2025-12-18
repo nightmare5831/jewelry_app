@@ -12,13 +12,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '../../store/useAppStore';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { sellerApi, type SellerDashboard } from '../../services/api';
 import FABMenu from '../../components/FABMenu';
 import GoldPriceIndicator from '../../components/ui/GoldPriceIndicator';
 
 export default function SellerDashboardScreen() {
   const router = useRouter();
-  const { currentUser, authToken, isAuthenticated } = useAppStore();
+  const { authToken } = useAppStore();
+  const { user: currentUser, isAuthenticated } = useCurrentUser();
 
   const [dashboard, setDashboard] = useState<SellerDashboard | null>(null);
   const [loading, setLoading] = useState(true);

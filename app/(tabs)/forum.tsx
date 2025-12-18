@@ -12,14 +12,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../../store/useAppStore';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { router, useLocalSearchParams } from 'expo-router';
 import { messageApi, QAMessage } from '../../services/api';
 
 export default function Forum() {
   const { sellerId, sellerName } = useLocalSearchParams<{ sellerId: string; sellerName: string }>();
-  const { currentUser, authToken } = useAppStore();
+  const { authToken } = useAppStore();
+  const { user: currentUser } = useCurrentUser();
   const [messages, setMessages] = useState<QAMessage[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [showNewQuestion, setShowNewQuestion] = useState(false);
   const [newQuestionText, setNewQuestionText] = useState('');
   const [answerText, setAnswerText] = useState('');
@@ -29,18 +31,16 @@ export default function Forum() {
   const decodedSellerName = sellerName ? decodeURIComponent(sellerName) : 'Vendedor';
 
   useEffect(() => {
-    if (sellerIdNum && authToken) {
+    if (sellerIdNum) {
       loadMessages();
-    } else {
-      setLoading(false);
     }
-  }, [sellerIdNum, authToken]);
+  }, [sellerIdNum]);
 
   const loadMessages = async () => {
-    if (!authToken || !sellerIdNum) return;
+    if (!sellerIdNum) return;
     try {
       setLoading(true);
-      const data = await messageApi.getBySeller(authToken, sellerIdNum);
+      const data = await messageApi.getBySeller(sellerIdNum, authToken || undefined);
       setMessages(data);
     } catch (error) {
       console.error('Failed to load messages:', error);
@@ -75,7 +75,14 @@ export default function Forum() {
   };
 
   const handleAnswer = async (messageId: number) => {
-    if (!answerText.trim() || !authToken) return;
+    if (!authToken) {
+      Alert.alert('Login necessário', 'Faça login para responder', [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Login', onPress: () => router.push('/auth/login') },
+      ]);
+      return;
+    }
+    if (!answerText.trim()) return;
     try {
       await messageApi.answerQuestion(authToken, messageId, answerText);
       setAnswerText('');

@@ -25,6 +25,7 @@ export interface User {
   phone?: string;
   role: 'buyer' | 'seller' | 'admin';
   avatar?: string;
+  createdAt?: string;
 }
 
 interface LoginResponse {
@@ -383,11 +384,13 @@ export interface QAMessage {
 }
 
 export const messageApi = {
-  getBySeller: async (token: string, sellerId: number): Promise<QAMessage[]> => {
+  getBySeller: async (sellerId: number, token?: string): Promise<QAMessage[]> => {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
     return await apiCall<QAMessage[]>(`/messages?seller_id=${sellerId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
     });
   },
 
