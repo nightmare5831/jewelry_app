@@ -22,8 +22,7 @@
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.perfectjewel.app",
-      "gradleWrapperVersion": "8.3"
+      "package": "com.perfectjewel.app"
     },
     "web": {
       "favicon": "./assets/splash.png"
