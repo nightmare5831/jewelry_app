@@ -24,7 +24,7 @@ function SplashScreen() {
 export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
-  const { authToken, checkAuth } = useAppStore();
+  const { authToken, checkAuth, fetchCart } = useAppStore();
   const [isAppReady, setIsAppReady] = useState(false);
 
   // Simplified: isAuthenticated = token exists
@@ -48,6 +48,13 @@ export default function RootLayout() {
 
     initializeApp();
   }, []);
+
+  // Fetch cart when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCart();
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isAppReady) return;

@@ -117,10 +117,17 @@ export default function ProductFormScreen() {
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const options: any = {
       quality: 0.8,
       allowsMultipleSelection: false,
-    });
+    };
+
+    // Set mediaTypes for video to show videos in picker
+    if (fileType === 'video') {
+      options.mediaTypes = ImagePicker.MediaTypeOptions.Videos;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync(options);
 
     if (!result.canceled && result.assets[0]) {
       await uploadFile(result.assets[0], fileType);
