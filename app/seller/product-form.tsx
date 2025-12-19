@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { useAppStore } from '../../store/useAppStore';
 import { productApi, sellerApi, uploadApi } from '../../services/api';
 
@@ -92,6 +93,13 @@ export default function ProductFormScreen() {
           stock_quantity: product.stock_quantity?.toString() || '1',
         });
         setImages(product.images ? JSON.parse(product.images) : []);
+
+        // Load video URL if exists
+        if (product.videos) {
+          const videosArray = typeof product.videos === 'string' ? JSON.parse(product.videos) : product.videos;
+          setVideoUrl(videosArray[0] || '');
+        }
+
         setModel3dUrl(product.model_3d_url || '');
       } else {
         Alert.alert('Erro', 'Produto não encontrado');
@@ -111,6 +119,13 @@ export default function ProductFormScreen() {
   };
 
   const pickFile = async (fileType: 'image' | 'video' | '3d_model') => {
+    // Use DocumentPicker for 3D models
+    if (fileType === '3d_model') {
+      await pick3DModel();
+      return;
+    }
+
+    // Use ImagePicker for images and videos
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permissão necessária', 'Precisamos de acesso à galeria');
@@ -131,6 +146,31 @@ export default function ProductFormScreen() {
 
     if (!result.canceled && result.assets[0]) {
       await uploadFile(result.assets[0], fileType);
+    }
+  };
+
+  const pick3DModel = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['model/gltf-binary', 'model/gltf+json', 'model/obj', '*/*'],
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) return;
+
+      const file = result.assets[0];
+      const fileName = file.name.toLowerCase();
+
+      // Validate file extension
+      if (!fileName.endsWith('.glb') && !fileName.endsWith('.gltf') && !fileName.endsWith('.obj')) {
+        Alert.alert('Arquivo inválido', 'Por favor, selecione um arquivo .glb, .gltf ou .obj');
+        return;
+      }
+
+      // Upload the 3D model
+      await uploadFile(file, '3d_model');
+    } catch (error: any) {
+      Alert.alert('Erro', error.message || 'Falha ao selecionar arquivo 3D');
     }
   };
 
@@ -230,6 +270,7 @@ export default function ProductFormScreen() {
         gold_karat: formData.gold_karat,
         stock_quantity: parseInt(formData.stock_quantity),
         images: JSON.stringify(images),
+        videos: videoUrl ? JSON.stringify([videoUrl]) : undefined,
         model_3d_url: model3dUrl || undefined,
       };
 
