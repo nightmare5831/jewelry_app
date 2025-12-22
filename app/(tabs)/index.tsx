@@ -44,12 +44,12 @@ export default function CatalogScreen() {
     loadProducts();
   }, []);
 
-  // Redirect sellers to seller dashboard
+  // Redirect sellers to seller dashboard (only after products loaded to avoid premature navigation)
   useEffect(() => {
-    if (currentUser && currentUser.role === 'seller') {
+    if (currentUser && currentUser.role === 'seller' && !isLoading) {
       router.replace('/(tabs)/seller-dashboard');
     }
-  }, [currentUser]);
+  }, [currentUser, isLoading]);
 
   // Reset button state when switching to detail mode or changing product
   useEffect(() => {

@@ -137,9 +137,9 @@ export default function ProductFormScreen() {
       allowsMultipleSelection: false,
     };
 
-    // Set mediaTypes for video to show videos in picker
+    // Set mediaTypes for video to show all media (images + videos) in picker
     if (fileType === 'video') {
-      options.mediaTypes = ImagePicker.MediaTypeOptions.Videos;
+      options.mediaTypes = ImagePicker.MediaTypeOptions.All;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync(options);
