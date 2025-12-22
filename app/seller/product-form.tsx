@@ -151,8 +151,9 @@ export default function ProductFormScreen() {
 
   const pick3DModel = async () => {
     try {
+      // Use '*/*' to show all files on Android since MIME types for 3D models are not well supported
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['model/gltf-binary', 'model/gltf+json', 'model/obj', '*/*'],
+        type: '*/*',
         copyToCacheDirectory: true,
       });
 
