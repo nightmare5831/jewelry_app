@@ -15,7 +15,7 @@ function SplashScreen() {
         style={styles.splashLogo}
         resizeMode="contain"
       />
-      <Text style={styles.splashTitle}>Perfect Jewel</Text>
+      <Text style={styles.splashTitle}>Joia Perfetia</Text>
       <ActivityIndicator size="large" color="#D4AF37" style={styles.splashLoader} />
     </View>
   );
