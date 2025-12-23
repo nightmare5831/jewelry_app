@@ -29,11 +29,45 @@ export default function Model3DViewer({ modelUrl, height }: Model3DViewerProps) 
         #canvas { width: 100%; height: 100vh; display: block; }
         #error { color: red; padding: 20px; text-align: center; font-family: sans-serif; display: none; }
         #loading { color: #ffffff; padding: 20px; text-align: center; font-family: sans-serif; display: none; }
+
+        /* Brightness slider */
+        #brightnessSlider {
+          position: absolute;
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 200px;
+          height: 4px;
+          -webkit-appearance: none;
+          appearance: none;
+          background: rgba(255, 255, 255, 0.3);
+          border-radius: 2px;
+          outline: none;
+          z-index: 100;
+        }
+        #brightnessSlider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 16px;
+          height: 16px;
+          background: #D4AF37;
+          border-radius: 50%;
+          cursor: pointer;
+        }
+        #brightnessSlider::-moz-range-thumb {
+          width: 16px;
+          height: 16px;
+          background: #D4AF37;
+          border-radius: 50%;
+          cursor: pointer;
+          border: none;
+        }
       </style>
     </head>
     <body>
       <div id="loading">Loading 3D Model...</div>
       <div id="error"></div>
+      <input type="range" id="brightnessSlider" min="1" max="500" value="100" step="5">
       <script type="importmap">
         {
           "imports": {
@@ -66,14 +100,17 @@ export default function Model3DViewer({ modelUrl, height }: Model3DViewerProps) 
 
           const renderer = new THREE.WebGLRenderer({
             antialias: true,
-            alpha: false
+            alpha: false,
+            preserveDrawingBuffer: true
           });
           renderer.setSize(window.innerWidth, window.innerHeight);
           renderer.setPixelRatio(window.devicePixelRatio);
           renderer.outputColorSpace = THREE.SRGBColorSpace;
           renderer.toneMapping = THREE.ACESFilmicToneMapping;
-          renderer.toneMappingExposure = 1.8;
+          renderer.toneMappingExposure = 1.0;
           renderer.shadowMap.enabled = false;
+          // Enable proper transparency rendering
+          renderer.sortObjects = true;
           document.body.appendChild(renderer.domElement);
 
           // Create environment map for metallic reflections
@@ -81,7 +118,7 @@ export default function Model3DViewer({ modelUrl, height }: Model3DViewerProps) 
           const envScene = new RoomEnvironment();
           const envMap = pmremGenerator.fromScene(envScene).texture;
           scene.environment = envMap;
-          scene.environmentIntensity = 1.5;
+          scene.environmentIntensity = 0.8;
           pmremGenerator.dispose();
 
           // Add OrbitControls for zoom and manual rotation
@@ -96,98 +133,53 @@ export default function Model3DViewer({ modelUrl, height }: Model3DViewerProps) 
           controls.autoRotate = true;
           controls.autoRotateSpeed = 2.0;
 
-          // Soft studio lighting - no shadows, very bright even illumination
-
-          // Very high ambient light for overall brightness (no shadows)
-          const ambientLight = new THREE.AmbientLight(0xffffff, 6.0);
+          // Lighting setup - extremely bright
+          const ambientLight = new THREE.AmbientLight(0xffffff, 10.0);
           scene.add(ambientLight);
 
-          // Hemisphere light for soft natural fill (sky + ground)
-          const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 4.5);
-          hemiLight.position.set(0, 10, 0);
+          const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 12.0);
+          hemiLight.position.set(0, 20, 0);
           scene.add(hemiLight);
 
-          // Soft directional lights from multiple angles (no shadows)
-          // Front lights
-          const frontLight1 = new THREE.DirectionalLight(0xffffff, 4.5);
-          frontLight1.position.set(0, 5, 10);
-          scene.add(frontLight1);
+          // Store all lights for brightness control
+          const allLights = [ambientLight, hemiLight];
 
-          const frontLight2 = new THREE.DirectionalLight(0xffffff, 4.5);
-          frontLight2.position.set(5, 3, 8);
-          scene.add(frontLight2);
+          // Main directional lights
+          const keyLight = new THREE.DirectionalLight(0xffffff, 10.0);
+          keyLight.position.set(5, 5, 5);
+          scene.add(keyLight);
+          allLights.push(keyLight);
 
-          const frontLight3 = new THREE.DirectionalLight(0xffffff, 4.5);
-          frontLight3.position.set(-5, 3, 8);
-          scene.add(frontLight3);
+          const fillLight = new THREE.DirectionalLight(0xffffff, 7.0);
+          fillLight.position.set(-5, 0, -5);
+          scene.add(fillLight);
+          allLights.push(fillLight);
 
-          // Back lights for rim highlights
-          const backLight1 = new THREE.DirectionalLight(0xffffff, 3.0);
-          backLight1.position.set(0, 5, -10);
-          scene.add(backLight1);
+          const backLight = new THREE.DirectionalLight(0xffffff, 8.0);
+          backLight.position.set(0, 5, -5);
+          scene.add(backLight);
+          allLights.push(backLight);
 
-          const backLight2 = new THREE.DirectionalLight(0xffffff, 3.0);
-          backLight2.position.set(5, 3, -8);
-          scene.add(backLight2);
+          // Additional directional lights for complete even coverage
+          const frontLight = new THREE.DirectionalLight(0xffffff, 9.0);
+          frontLight.position.set(0, 3, 8);
+          scene.add(frontLight);
+          allLights.push(frontLight);
 
-          const backLight3 = new THREE.DirectionalLight(0xffffff, 3.0);
-          backLight3.position.set(-5, 3, -8);
-          scene.add(backLight3);
-
-          // Bottom lights to eliminate dark areas
-          const bottomLight1 = new THREE.DirectionalLight(0xffffff, 4.0);
-          bottomLight1.position.set(0, -10, 0);
-          scene.add(bottomLight1);
-
-          const bottomLight2 = new THREE.DirectionalLight(0xffffff, 3.5);
-          bottomLight2.position.set(0, -8, 5);
-          scene.add(bottomLight2);
-
-          const bottomLight3 = new THREE.DirectionalLight(0xffffff, 3.5);
-          bottomLight3.position.set(0, -8, -5);
-          scene.add(bottomLight3);
-
-          // Additional side lights for complete coverage
-          const sideLight1 = new THREE.DirectionalLight(0xffffff, 3.5);
-          sideLight1.position.set(10, 0, 0);
+          const sideLight1 = new THREE.DirectionalLight(0xffffff, 7.0);
+          sideLight1.position.set(8, 0, 0);
           scene.add(sideLight1);
+          allLights.push(sideLight1);
 
-          const sideLight2 = new THREE.DirectionalLight(0xffffff, 3.5);
-          sideLight2.position.set(-10, 0, 0);
+          const sideLight2 = new THREE.DirectionalLight(0xffffff, 7.0);
+          sideLight2.position.set(-8, 0, 0);
           scene.add(sideLight2);
+          allLights.push(sideLight2);
 
-          // Diagonal lights from corners
-          const diagLight1 = new THREE.DirectionalLight(0xffffff, 2.5);
-          diagLight1.position.set(7, 7, 7);
-          scene.add(diagLight1);
-
-          const diagLight2 = new THREE.DirectionalLight(0xffffff, 2.5);
-          diagLight2.position.set(-7, 7, 7);
-          scene.add(diagLight2);
-
-          const diagLight3 = new THREE.DirectionalLight(0xffffff, 2.5);
-          diagLight3.position.set(7, 7, -7);
-          scene.add(diagLight3);
-
-          const diagLight4 = new THREE.DirectionalLight(0xffffff, 2.5);
-          diagLight4.position.set(-7, 7, -7);
-          scene.add(diagLight4);
-
-          const diagLight5 = new THREE.DirectionalLight(0xffffff, 2.5);
-          diagLight5.position.set(7, -7, 7);
-          scene.add(diagLight5);
-
-          const diagLight6 = new THREE.DirectionalLight(0xffffff, 2.5);
-          diagLight6.position.set(-7, -7, 7);
-          scene.add(diagLight6);
-
-          const diagLight7 = new THREE.DirectionalLight(0xffffff, 2.5);
-          diagLight7.position.set(7, -7, -7);
-          scene.add(diagLight7);
-
-          const diagLight8 = new THREE.DirectionalLight(0xffffff, 2.5);
-          diagLight8.position.set(-7, -7, -7);
-          scene.add(diagLight8);
+          const bottomLight = new THREE.DirectionalLight(0xffffff, 8.0);
+          bottomLight.position.set(0, -8, 0);
+          scene.add(bottomLight);
+          allLights.push(bottomLight);
 
           let model;
           const loader = new GLTFLoader();
@@ -229,58 +221,67 @@ export default function Model3DViewer({ modelUrl, height }: Model3DViewerProps) 
                       // Ensure material updates
                       mat.needsUpdate = true;
 
-                      // Ensure textures use correct color space and UV mapping
+                      // Handle transparent/translucent materials (gemstones)
+                      if (mat.transparent || mat.opacity < 1.0 || mat.transmission > 0) {
+                        // Reduce transparency to show color better
+                        if (mat.opacity !== undefined && mat.opacity < 0.9) {
+                          mat.opacity = 0.9; // Make mostly opaque
+                        }
+                        if (mat.transmission !== undefined && mat.transmission > 0) {
+                          mat.transmission = 0; // Disable transmission
+                        }
+                      }
+
+                      // Use DoubleSide for all materials
+                      mat.side = THREE.DoubleSide;
+
+                      // Ensure textures use correct color space
                       if (mat.map) {
                         mat.map.colorSpace = THREE.SRGBColorSpace;
                         mat.map.needsUpdate = true;
-                        mat.map.flipY = false;
                       }
                       if (mat.emissiveMap) {
                         mat.emissiveMap.colorSpace = THREE.SRGBColorSpace;
                         mat.emissiveMap.needsUpdate = true;
-                        mat.emissiveMap.flipY = false;
                       }
                       if (mat.normalMap) {
                         mat.normalMap.needsUpdate = true;
-                        mat.normalMap.flipY = false;
                       }
                       if (mat.roughnessMap) {
                         mat.roughnessMap.needsUpdate = true;
-                        mat.roughnessMap.flipY = false;
                       }
                       if (mat.metalnessMap) {
                         mat.metalnessMap.needsUpdate = true;
-                        mat.metalnessMap.flipY = false;
                       }
                       if (mat.aoMap) {
                         mat.aoMap.needsUpdate = true;
-                        mat.aoMap.flipY = false;
                         if (mat.aoMapIntensity === undefined) {
                           mat.aoMapIntensity = 1.0;
                         }
                       }
-
-                      // Ensure proper rendering
-                      mat.side = THREE.FrontSide;
-
-                      // Enhance emissive intensity for glowing elements
-                      if (mat.emissive && (mat.emissive.r > 0 || mat.emissive.g > 0 || mat.emissive.b > 0)) {
-                        mat.emissiveIntensity = Math.max(mat.emissiveIntensity || 1.0, 2.0);
-                      }
-
-                      // Brighten base colors that appear too dark
-                      if (mat.color) {
-                        const brightness = (mat.color.r + mat.color.g + mat.color.b) / 3;
-                        // If material is dark but should be metallic/bright
-                        if (brightness < 0.5 && mat.metalness !== undefined && mat.metalness > 0) {
-                          const factor = 1.5;
-                          mat.color.r = Math.min(1.0, mat.color.r * factor);
-                          mat.color.g = Math.min(1.0, mat.color.g * factor);
-                          mat.color.b = Math.min(1.0, mat.color.b * factor);
-                        }
-                      }
                     });
                   }
+                }
+              });
+
+              // Store base light intensities for brightness slider
+              const baseLightIntensities = {
+                lights: allLights.map(light => light.intensity)
+              };
+
+              // Brightness slider control - directly adjusts all lights
+              const brightnessSlider = document.getElementById('brightnessSlider');
+              brightnessSlider.addEventListener('input', (e) => {
+                const multiplier = parseInt(e.target.value) / 100;
+                // Apply multiplier to all lights
+                allLights.forEach((light, index) => {
+                  light.intensity = baseLightIntensities.lights[index] * multiplier;
+                });
+                // Reduce exposure at high brightness to prevent color washout
+                if (multiplier > 1.0) {
+                  renderer.toneMappingExposure = 1.0 / Math.sqrt(multiplier);
+                } else {
+                  renderer.toneMappingExposure = 1.0;
                 }
               });
 
