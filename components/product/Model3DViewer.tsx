@@ -90,7 +90,9 @@ export default function Model3DViewer({ modelUrl, height }: Model3DViewerProps) 
           controls.dampingFactor = 0.05;
           controls.minDistance = 2;
           controls.maxDistance = 10;
-          controls.enablePan = false;
+          controls.enablePan = true; // Enable panning with 2 fingers
+          controls.panSpeed = 1.0;
+          controls.screenSpacePanning = true; // Pan in screen space
           controls.autoRotate = true;
           controls.autoRotateSpeed = 2.0;
 
