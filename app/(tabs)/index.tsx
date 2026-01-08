@@ -213,6 +213,7 @@ export default function CatalogScreen() {
       <View style={styles.container}>
         <ScrollView
           style={styles.detailFullScrollView}
+          contentContainerStyle={styles.detailScrollContent}
           showsVerticalScrollIndicator={false}
           bounces={true}
         >
@@ -764,12 +765,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
+  detailScrollContent: {
+    backgroundColor: '#ffffff',
+  },
   detailViewerSection: {
     backgroundColor: '#000000',
   },
   detailContentSection: {
     backgroundColor: '#fafafa',
-    minHeight: 400,
+    minHeight: SCREEN_HEIGHT,
   },
   detailScrollView: {
     flex: 1,
