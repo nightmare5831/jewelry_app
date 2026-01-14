@@ -236,6 +236,22 @@ export default function SellerDashboardScreen() {
             </View>
             <Ionicons name="chevron-forward" size={24} color="#9ca3af" />
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => router.push('/(tabs)/seller-refunds')}
+          >
+            <View style={styles.actionIconContainer}>
+              <Ionicons name="return-down-back-outline" size={32} color="#f97316" />
+            </View>
+            <View style={styles.actionContent}>
+              <Text style={styles.actionTitle}>Reembolsos</Text>
+              <Text style={styles.actionDescription}>
+                Gerenciar solicitações de reembolso
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#9ca3af" />
+          </TouchableOpacity>
         </View>
 
         {/* Recent Products */}
