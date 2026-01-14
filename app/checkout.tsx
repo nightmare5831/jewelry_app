@@ -233,20 +233,20 @@ export default function CheckoutScreen() {
         <View style={styles.section}>
           <View style={styles.totalContainer}>
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Subtotal:</Text>
+              <Text style={styles.totalLabel}>Subtotal (Produtos):</Text>
               <Text style={styles.totalValue}>R$ {selectedTotals.subtotal.toFixed(2)}</Text>
+            </View>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Taxa da Plataforma (10%):</Text>
+              <Text style={styles.totalValue}>R$ {(selectedTotals.subtotal * 0.10).toFixed(2)}</Text>
             </View>
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Frete:</Text>
               <Text style={styles.totalValue}>R$ {selectedTotals.shipping.toFixed(2)}</Text>
             </View>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Taxas:</Text>
-              <Text style={styles.totalValue}>R$ {selectedTotals.tax.toFixed(2)}</Text>
-            </View>
             <View style={[styles.totalRow, styles.grandTotalRow]}>
               <Text style={styles.grandTotalLabel}>Total:</Text>
-              <Text style={styles.grandTotalValue}>R$ {selectedTotals.total.toFixed(2)}</Text>
+              <Text style={styles.grandTotalValue}>R$ {(selectedTotals.subtotal * 1.10 + selectedTotals.shipping).toFixed(2)}</Text>
             </View>
           </View>
         </View>

@@ -285,7 +285,7 @@ export default function PaymentScreen() {
       <View style={styles.infoCard}>
         <Ionicons name="information-circle-outline" size={24} color="#666" />
         <Text style={styles.infoText}>
-          Your payment is processed securely through Mercado Pago. You will receive a confirmation email once the payment is completed.
+          Pagamento processado com segurança via Mercado Pago. Escolha PIX (taxa 8%) ou Cartão de Crédito (taxa 10%). Você receberá confirmação por email.
         </Text>
       </View>
 
