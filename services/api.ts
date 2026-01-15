@@ -25,6 +25,11 @@ export interface User {
   phone?: string;
   role: 'buyer' | 'seller' | 'admin';
   avatar?: string;
+  seller_status?: 'pending' | 'approved' | 'rejected' | 'inactive' | null;
+  seller_approved?: boolean;
+  mercadopago_connected?: boolean;
+  mercadopago_user_id?: string | null;
+  is_active?: boolean;
   createdAt?: string;
 }
 
@@ -960,6 +965,34 @@ export const sellerApi = {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ tracking_number: trackingNumber }),
+    });
+  },
+
+  // Get Mercado Pago OAuth URL
+  getMercadoPagoOAuthUrl: async (token: string): Promise<{ oauth_url: string }> => {
+    return await apiCall<{ oauth_url: string }>('/seller/mercadopago/oauth-url', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Get Mercado Pago connection status
+  getMercadoPagoStatus: async (token: string): Promise<{ connected: boolean; user_id: string | null }> => {
+    return await apiCall<{ connected: boolean; user_id: string | null }>('/seller/mercadopago/status', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Disconnect Mercado Pago account
+  disconnectMercadoPago: async (token: string): Promise<{ message: string }> => {
+    return await apiCall<{ message: string }>('/seller/mercadopago/disconnect', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
   },
 };
