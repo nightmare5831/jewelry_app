@@ -551,16 +551,22 @@ export interface Order {
   id: number;
   order_number: string;
   buyer_id: number;
-  status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'accepted' | 'shipped' | 'delivered' | 'cancelled';
   total_amount: number;
   tax_amount: number;
   shipping_amount: number;
   shipping_address: ShippingAddress;
   tracking_number?: string;
+  cancellation_reason?: string;
   paid_at?: string;
+  accepted_at?: string;
   shipped_at?: string;
   items: OrderItem[];
   payment?: Payment;
+  buyer?: {
+    name: string;
+    email: string;
+  };
   created_at: string;
   updated_at: string;
 }
@@ -613,6 +619,15 @@ export const orderApi = {
 
   cancelOrder: async (token: string, id: number): Promise<{ message: string; order: Order }> => {
     return await apiCall<{ message: string; order: Order }>(`/orders/${id}/cancel`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  confirmDelivery: async (token: string, id: number): Promise<{ message: string; order: Order }> => {
+    return await apiCall<{ message: string; order: Order }>(`/orders/${id}/confirm-delivery`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -953,11 +968,39 @@ export const sellerApi = {
     });
   },
 
+  // Accept order
+  acceptOrder: async (
+    token: string,
+    orderId: number
+  ): Promise<{ message: string; order: any }> => {
+    return await apiCall<{ message: string; order: any }>(`/seller/orders/${orderId}/accept`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Reject order
+  rejectOrder: async (
+    token: string,
+    orderId: number,
+    reason: string
+  ): Promise<{ message: string; order: any }> => {
+    return await apiCall<{ message: string; order: any }>(`/seller/orders/${orderId}/reject`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ reason }),
+    });
+  },
+
   // Mark order as shipped
   markAsShipped: async (
     token: string,
     orderId: number,
-    trackingNumber?: string
+    trackingNumber: string
   ): Promise<{ message: string; order: any }> => {
     return await apiCall<{ message: string; order: any }>(`/seller/orders/${orderId}/ship`, {
       method: 'PATCH',

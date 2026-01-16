@@ -5,78 +5,32 @@ import { useState, useEffect } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { router } from 'expo-router';
-import { API_CONFIG } from '../../config/api';
-import type { WishlistItem } from '../../services/api';
+import type { Order } from '../../services/api';
 
 const userIcon = require('../../assets/user.png');
 
-interface PurchasedProduct {
+interface Review {
+  id: number;
   product_id: number;
   product_name: string;
   product_image: string | null;
-  order_number: string;
-  purchased_at: string;
-  has_review: boolean;
+  rating: number;
+  comment: string;
+  created_at: string;
 }
 
 export default function PerfilScreen() {
-  const { logout, authToken, wishlist, fetchWishlist, removeFromWishlist } = useAppStore();
+  const { logout, authToken, orders, fetchOrders } = useAppStore();
   const { user: currentUser } = useCurrentUser();
-  const [activeTab, setActiveTab] = useState<'wishes' | 'shopping' | 'message'>('shopping');
-  const [purchasedProducts, setPurchasedProducts] = useState<PurchasedProduct[]>([]);
+  const [activeTab, setActiveTab] = useState<'compras' | 'avaliacoes'>('compras');
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(false);
-  const [wishlistLoading, setWishlistLoading] = useState(false);
 
   useEffect(() => {
-    if (authToken && activeTab === 'shopping') {
-      fetchPurchasedProducts();
-    }
-    if (authToken && activeTab === 'wishes') {
-      loadWishlist();
+    if (authToken && activeTab === 'compras') {
+      fetchOrders();
     }
   }, [authToken, activeTab]);
-
-  const loadWishlist = async () => {
-    setWishlistLoading(true);
-    try {
-      await fetchWishlist();
-    } catch (error) {
-      console.error('Error fetching wishlist:', error);
-    } finally {
-      setWishlistLoading(false);
-    }
-  };
-
-  const handleRemoveFromWishlist = async (productId: number) => {
-    try {
-      await removeFromWishlist(productId);
-    } catch (error) {
-      console.error('Error removing from wishlist:', error);
-    }
-  };
-
-  const fetchPurchasedProducts = async () => {
-    if (!authToken) return;
-
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/orders/purchased-products`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Accept': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setPurchasedProducts(data);
-      }
-    } catch (error) {
-      console.error('Error fetching purchased products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -128,7 +82,43 @@ export default function PerfilScreen() {
     );
   }
 
-  const renderShoppingTab = () => {
+  const getStatusColor = (status: Order['status']) => {
+    switch (status) {
+      case 'pending': return '#9ca3af';
+      case 'confirmed': return '#f97316';
+      case 'accepted': return '#f97316';
+      case 'shipped': return '#2563eb';
+      case 'delivered': return '#16a34a';
+      case 'cancelled': return '#dc2626';
+      default: return '#666';
+    }
+  };
+
+  const getStatusLabel = (status: Order['status']) => {
+    switch (status) {
+      case 'pending': return 'Aguardando pagamento';
+      case 'confirmed': return 'Aguardando o vendedor';
+      case 'accepted': return 'Aguardando envio';
+      case 'shipped': return 'Postado';
+      case 'delivered': return 'Concluído';
+      case 'cancelled': return 'Cancelado';
+      default: return status;
+    }
+  };
+
+  const getStatusMessage = (status: Order['status']) => {
+    switch (status) {
+      case 'pending': return 'Aguardando confirmação do pagamento.';
+      case 'confirmed': return 'Aguardando o vendedor confirmar o seu pedido.';
+      case 'accepted': return 'Seu pedido foi aceito e está sendo confeccionado.';
+      case 'shipped': return 'Seu pedido foi postado, confirme quando ele chegar.';
+      case 'delivered': return 'Pedido entregue com sucesso!';
+      case 'cancelled': return 'Seu pedido foi cancelado pelo vendedor.';
+      default: return '';
+    }
+  };
+
+  const renderComprasTab = () => {
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
@@ -137,7 +127,7 @@ export default function PerfilScreen() {
       );
     }
 
-    if (purchasedProducts.length === 0) {
+    if (orders.length === 0) {
       return (
         <View style={styles.emptyState}>
           <Ionicons name="bag-outline" size={64} color="#d1d5db" />
@@ -146,84 +136,87 @@ export default function PerfilScreen() {
       );
     }
 
+    const renderOrderFooter = (order: Order) => {
+      switch (order.status) {
+        case 'cancelled':
+          return (
+            <TouchableOpacity
+              style={styles.orderFooterButton}
+              onPress={() => Alert.alert('Motivo do cancelamento', order.cancellation_reason || 'Sem motivo informado')}
+            >
+              <Text style={styles.orderFooterButtonText}>Ver motivo</Text>
+            </TouchableOpacity>
+          );
+        case 'shipped':
+          return (
+            <TouchableOpacity style={[styles.orderFooterButton, styles.orderFooterButtonBlue]}>
+              <Text style={[styles.orderFooterButtonText, styles.orderFooterButtonTextWhite]}>Rastreamento</Text>
+            </TouchableOpacity>
+          );
+        case 'delivered':
+          return (
+            <TouchableOpacity style={[styles.orderFooterButton, styles.orderFooterButtonBlack]}>
+              <Text style={[styles.orderFooterButtonText, styles.orderFooterButtonTextWhite]}>Avaliar</Text>
+            </TouchableOpacity>
+          );
+        default:
+          return (
+            <Text style={styles.orderStatusMessage}>{getStatusMessage(order.status)}</Text>
+          );
+      }
+    };
+
     return (
-      <View style={styles.productList}>
-        {purchasedProducts.map((product) => (
-          <View key={product.product_id} style={styles.productCard}>
-            <Image
-              source={{ uri: product.product_image || 'https://via.placeholder.com/80' }}
-              style={styles.productImage}
-            />
-            <View style={styles.productInfo}>
-              <Text style={styles.productName}>{product.product_name}</Text>
-              <Text style={styles.orderNumber}>Pedido: {product.order_number}</Text>
-              <Text style={styles.purchaseDate}>
-                {new Date(product.purchased_at).toLocaleDateString('pt-BR')}
+      <View style={styles.orderList}>
+        {orders.map((order) => (
+          <TouchableOpacity
+            key={order.id}
+            style={styles.orderCard}
+            onPress={() => router.push(`/orders/${order.id}`)}
+          >
+            {/* Header: Status + Date */}
+            <View style={styles.orderCardHeader}>
+              <View style={[styles.orderStatusBadge, { backgroundColor: getStatusColor(order.status) }]}>
+                <Text style={styles.orderStatusText}>{getStatusLabel(order.status)}</Text>
+              </View>
+              <Text style={styles.orderDate}>
+                Compra feita dia {new Date(order.created_at).toLocaleDateString('pt-BR')}
               </Text>
             </View>
-            <TouchableOpacity
-              style={[styles.reviewButton, product.has_review && styles.reviewButtonDisabled]}
-              onPress={() => !product.has_review && router.push(`/review/${product.product_id}`)}
-              disabled={product.has_review}
-            >
-              <Text style={[styles.reviewButtonText, product.has_review && styles.reviewButtonTextDisabled]}>
-                {product.has_review ? 'Avaliado' : 'Avaliar'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+
+            {/* Shared Content: Product Info */}
+            {order.items?.map((item) => (
+              <View key={item.id} style={styles.orderItemRow}>
+                <Image
+                  source={{ uri: item.product?.thumbnail || item.product?.images?.[0] || 'https://via.placeholder.com/60' }}
+                  style={styles.orderItemImage}
+                />
+                <View style={styles.orderItemInfo}>
+                  <Text style={styles.orderItemName} numberOfLines={2}>
+                    {item.product?.name || 'Produto'}
+                  </Text>
+                </View>
+              </View>
+            ))}
+
+            {/* Price */}
+            <Text style={styles.orderPrice}>R$ {Number(order.total_amount).toFixed(2)}</Text>
+
+            {/* Footer: Status-specific actions */}
+            <View style={styles.orderCardFooter}>
+              {renderOrderFooter(order)}
+            </View>
+          </TouchableOpacity>
         ))}
       </View>
     );
   };
 
-  const renderWishlistTab = () => {
-    if (wishlistLoading) {
-      return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#000" />
-        </View>
-      );
-    }
-
-    if (wishlist.length === 0) {
-      return (
-        <View style={styles.emptyState}>
-          <Ionicons name="heart-outline" size={64} color="#d1d5db" />
-          <Text style={styles.emptyStateText}>Nenhum desejo salvo</Text>
-          <TouchableOpacity
-            style={styles.shopNowButton}
-            onPress={() => router.push('/(tabs)')}
-          >
-            <Text style={styles.shopNowButtonText}>Explorar produtos</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
+  const renderAvaliacoesTab = () => {
     return (
-      <View style={styles.wishlistGrid}>
-        {wishlist.map((item) => (
-          <View key={item.id} style={styles.wishlistCard}>
-            <Image
-              source={{ uri: item.product?.thumbnail || item.product?.images?.[0] || 'https://via.placeholder.com/150' }}
-              style={styles.wishlistImage}
-            />
-            <TouchableOpacity
-              style={styles.removeWishlistButton}
-              onPress={() => handleRemoveFromWishlist(item.product_id)}
-            >
-              <Ionicons name="heart" size={20} color="#ef4444" />
-            </TouchableOpacity>
-            <View style={styles.wishlistInfo}>
-              <Text style={styles.wishlistProductName} numberOfLines={2}>
-                {item.product?.name || 'Produto'}
-              </Text>
-              <Text style={styles.wishlistPrice}>
-                R$ {item.product?.price?.toFixed(2) || '0.00'}
-              </Text>
-            </View>
-          </View>
-        ))}
+      <View style={styles.emptyState}>
+        <Ionicons name="star-outline" size={64} color="#d1d5db" />
+        <Text style={styles.emptyStateText}>Nenhuma avaliação</Text>
       </View>
     );
   };
@@ -253,40 +246,26 @@ export default function PerfilScreen() {
 
         <View style={styles.tabsContainer}>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'wishes' && styles.tabActive]}
-            onPress={() => setActiveTab('wishes')}
+            style={[styles.tab, activeTab === 'compras' && styles.tabActive]}
+            onPress={() => setActiveTab('compras')}
           >
-            <Text style={[styles.tabText, activeTab === 'wishes' && styles.tabTextActive]}>
-              Desejos
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'shopping' && styles.tabActive]}
-            onPress={() => setActiveTab('shopping')}
-          >
-            <Text style={[styles.tabText, activeTab === 'shopping' && styles.tabTextActive]}>
+            <Text style={[styles.tabText, activeTab === 'compras' && styles.tabTextActive]}>
               Compras
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'message' && styles.tabActive]}
-            onPress={() => setActiveTab('message')}
+            style={[styles.tab, activeTab === 'avaliacoes' && styles.tabActive]}
+            onPress={() => setActiveTab('avaliacoes')}
           >
-            <Text style={[styles.tabText, activeTab === 'message' && styles.tabTextActive]}>
-              Mensagens
+            <Text style={[styles.tabText, activeTab === 'avaliacoes' && styles.tabTextActive]}>
+              Avaliações
             </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.tabContent}>
-          {activeTab === 'shopping' && renderShoppingTab()}
-          {activeTab === 'wishes' && renderWishlistTab()}
-          {activeTab === 'message' && (
-            <View style={styles.emptyState}>
-              <Ionicons name="chatbubble-outline" size={64} color="#d1d5db" />
-              <Text style={styles.emptyStateText}>Nenhuma mensagem</Text>
-            </View>
-          )}
+          {activeTab === 'compras' && renderComprasTab()}
+          {activeTab === 'avaliacoes' && renderAvaliacoesTab()}
         </View>
       </ScrollView>
 
@@ -466,5 +445,107 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
     color: '#000',
+  },
+  // Order card styles
+  orderList: {
+    gap: 16,
+  },
+  orderCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  orderCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  orderStatusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  orderStatusText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  orderDate: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  orderItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  orderItemImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 12,
+    backgroundColor: '#f0f0f0',
+  },
+  orderItemInfo: {
+    flex: 1,
+  },
+  orderItemName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  orderItemRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  orderItemRatingText: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  orderPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  orderStatusMessage: {
+    fontSize: 13,
+    color: '#6b7280',
+    fontStyle: 'italic',
+  },
+  orderCardFooter: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  orderFooterButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: '#f3f4f6',
+    alignSelf: 'flex-start',
+  },
+  orderFooterButtonBlue: {
+    backgroundColor: '#2563eb',
+  },
+  orderFooterButtonBlack: {
+    backgroundColor: '#000',
+  },
+  orderFooterButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  orderFooterButtonTextWhite: {
+    color: '#fff',
   },
 });
