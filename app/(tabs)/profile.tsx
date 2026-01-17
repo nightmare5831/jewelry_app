@@ -6,6 +6,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { router } from 'expo-router';
 import type { Order } from '../../services/api';
+import OrderCard from '../../components/order/OrderCard';
 
 const userIcon = require('../../assets/user.png');
 
@@ -82,40 +83,21 @@ export default function PerfilScreen() {
     );
   }
 
-  const getStatusColor = (status: Order['status']) => {
-    switch (status) {
-      case 'pending': return '#9ca3af';
-      case 'confirmed': return '#f97316';
-      case 'accepted': return '#f97316';
-      case 'shipped': return '#2563eb';
-      case 'delivered': return '#16a34a';
-      case 'cancelled': return '#dc2626';
-      default: return '#666';
-    }
+  const handleViewReason = (order: Order) => {
+    Alert.alert('Motivo do cancelamento', order.cancellation_reason || 'Sem motivo informado');
   };
 
-  const getStatusLabel = (status: Order['status']) => {
-    switch (status) {
-      case 'pending': return 'Aguardando pagamento';
-      case 'confirmed': return 'Aguardando o vendedor';
-      case 'accepted': return 'Aguardando envio';
-      case 'shipped': return 'Postado';
-      case 'delivered': return 'Concluído';
-      case 'cancelled': return 'Cancelado';
-      default: return status;
-    }
-  };
-
-  const getStatusMessage = (status: Order['status']) => {
-    switch (status) {
-      case 'pending': return 'Aguardando confirmação do pagamento.';
-      case 'confirmed': return 'Aguardando o vendedor confirmar o seu pedido.';
-      case 'accepted': return 'Seu pedido foi aceito e está sendo confeccionado.';
-      case 'shipped': return 'Seu pedido foi postado, confirme quando ele chegar.';
-      case 'delivered': return 'Pedido entregue com sucesso!';
-      case 'cancelled': return 'Seu pedido foi cancelado pelo vendedor.';
-      default: return '';
-    }
+  const handleConfirmDelivery = async (order: Order) => {
+    Alert.alert(
+      'Confirmar entrega',
+      'Confirma que recebeu o pedido?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Confirmar', onPress: () => {
+          // TODO: Call API to confirm delivery
+        }},
+      ]
+    );
   };
 
   const renderComprasTab = () => {
@@ -136,77 +118,16 @@ export default function PerfilScreen() {
       );
     }
 
-    const renderOrderFooter = (order: Order) => {
-      switch (order.status) {
-        case 'cancelled':
-          return (
-            <TouchableOpacity
-              style={styles.orderFooterButton}
-              onPress={() => Alert.alert('Motivo do cancelamento', order.cancellation_reason || 'Sem motivo informado')}
-            >
-              <Text style={styles.orderFooterButtonText}>Ver motivo</Text>
-            </TouchableOpacity>
-          );
-        case 'shipped':
-          return (
-            <TouchableOpacity style={[styles.orderFooterButton, styles.orderFooterButtonBlue]}>
-              <Text style={[styles.orderFooterButtonText, styles.orderFooterButtonTextWhite]}>Rastreamento</Text>
-            </TouchableOpacity>
-          );
-        case 'delivered':
-          return (
-            <TouchableOpacity style={[styles.orderFooterButton, styles.orderFooterButtonBlack]}>
-              <Text style={[styles.orderFooterButtonText, styles.orderFooterButtonTextWhite]}>Avaliar</Text>
-            </TouchableOpacity>
-          );
-        default:
-          return (
-            <Text style={styles.orderStatusMessage}>{getStatusMessage(order.status)}</Text>
-          );
-      }
-    };
-
     return (
       <View style={styles.orderList}>
         {orders.map((order) => (
-          <TouchableOpacity
+          <OrderCard
             key={order.id}
-            style={styles.orderCard}
-            onPress={() => router.push(`/orders/${order.id}`)}
-          >
-            {/* Header: Status + Date */}
-            <View style={styles.orderCardHeader}>
-              <View style={[styles.orderStatusBadge, { backgroundColor: getStatusColor(order.status) }]}>
-                <Text style={styles.orderStatusText}>{getStatusLabel(order.status)}</Text>
-              </View>
-              <Text style={styles.orderDate}>
-                Compra feita dia {new Date(order.created_at).toLocaleDateString('pt-BR')}
-              </Text>
-            </View>
-
-            {/* Shared Content: Product Info */}
-            {order.items?.map((item) => (
-              <View key={item.id} style={styles.orderItemRow}>
-                <Image
-                  source={{ uri: item.product?.thumbnail || item.product?.images?.[0] || 'https://via.placeholder.com/60' }}
-                  style={styles.orderItemImage}
-                />
-                <View style={styles.orderItemInfo}>
-                  <Text style={styles.orderItemName} numberOfLines={2}>
-                    {item.product?.name || 'Produto'}
-                  </Text>
-                </View>
-              </View>
-            ))}
-
-            {/* Price */}
-            <Text style={styles.orderPrice}>R$ {Number(order.total_amount).toFixed(2)}</Text>
-
-            {/* Footer: Status-specific actions */}
-            <View style={styles.orderCardFooter}>
-              {renderOrderFooter(order)}
-            </View>
-          </TouchableOpacity>
+            order={order}
+            viewType="buyer"
+            onViewReason={handleViewReason}
+            onConfirmDelivery={handleConfirmDelivery}
+          />
         ))}
       </View>
     );

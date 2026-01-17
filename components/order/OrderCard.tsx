@@ -134,13 +134,13 @@ export default function OrderCard({
 
   // Get customization from order item (ring sizes and names)
   const getCustomization = () => {
-    const customization = (item as any)?.customization;
-    if (!customization) return null;
+    const ringCustomization = item?.ringCustomization;
+    if (!ringCustomization) return null;
     return {
-      aroMasculino: customization.size_1 || customization.size,
-      nomeFeminino: customization.name_2,
-      aroFeminino: customization.size_2,
-      nomeMasculino: customization.name_1,
+      aroMasculino: ringCustomization.size_1 || ringCustomization.size,
+      nomeFeminino: ringCustomization.name_2,
+      aroFeminino: ringCustomization.size_2,
+      nomeMasculino: ringCustomization.name_1,
     };
   };
 

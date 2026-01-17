@@ -534,6 +534,17 @@ export interface ShippingAddress {
   country: string;
 }
 
+export interface RingCustomization {
+  id: number;
+  size?: number;
+  size_1?: number;
+  size_2?: number;
+  name_1?: string;
+  name_2?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface OrderItem {
   id: number;
   order_id: number;
@@ -542,7 +553,9 @@ export interface OrderItem {
   quantity: number;
   unit_price: number;
   total_price: number;
+  ring_customization_id?: number;
   product?: Product;
+  ringCustomization?: RingCustomization;
   created_at: string;
   updated_at: string;
 }
@@ -592,19 +605,42 @@ export interface CreateOrderData {
 
 export const orderApi = {
   getOrders: async (token: string): Promise<{ data: Order[] }> => {
-    return await apiCall<{ data: Order[] }>('/orders', {
+    const response = await apiCall<{ data: Order[] }>('/orders', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+
+    // Transform product data in order items
+    if (response.data) {
+      response.data = response.data.map(order => ({
+        ...order,
+        items: order.items?.map(item => ({
+          ...item,
+          product: item.product ? transformProduct(item.product as any) : undefined,
+        })) || [],
+      }));
+    }
+
+    return response;
   },
 
   getOrderById: async (token: string, id: number): Promise<Order> => {
-    return await apiCall<Order>(`/orders/${id}`, {
+    const order = await apiCall<Order>(`/orders/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+
+    // Transform product data in order items
+    if (order.items) {
+      order.items = order.items.map(item => ({
+        ...item,
+        product: item.product ? transformProduct(item.product as any) : undefined,
+      }));
+    }
+
+    return order;
   },
 
   createOrder: async (token: string, orderData: CreateOrderData): Promise<{ message: string; order: Order; payment: Payment }> => {
@@ -961,11 +997,24 @@ export const sellerApi = {
     const queryString = params.toString();
     const endpoint = queryString ? `/seller/orders?${queryString}` : '/seller/orders';
 
-    return await apiCall<any>(endpoint, {
+    const response = await apiCall<any>(endpoint, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+
+    // Transform product data in order items
+    if (response.data) {
+      response.data = response.data.map((order: any) => ({
+        ...order,
+        items: order.items?.map((item: any) => ({
+          ...item,
+          product: item.product ? transformProduct(item.product) : undefined,
+        })) || [],
+      }));
+    }
+
+    return response;
   },
 
   // Accept order
