@@ -128,7 +128,13 @@ export default function SellerDashboardScreen() {
     setMpLoading(true);
     try {
       const { oauth_url } = await sellerApi.getMercadoPagoOAuthUrl(authToken);
-      await Linking.openURL(oauth_url);
+
+      if (oauth_url) {
+        // Open OAuth URL for both sandbox and production modes
+        await Linking.openURL(oauth_url);
+      } else {
+        Alert.alert('Erro', 'URL de autenticação não disponível');
+      }
     } catch (err: any) {
       Alert.alert('Erro', err.message || 'Falha ao conectar com Mercado Pago');
     } finally {
