@@ -227,8 +227,8 @@ export default function OrderCard({
       {/* Price */}
       <Text style={styles.price}>{formatPrice(order.total_amount)}</Text>
 
-      {/* Tracking Number Display (for shipped/delivered) */}
-      {order.tracking_number && (order.status === 'shipped' || order.status === 'delivered') && (
+      {/* Tracking Number Display (for shipped only) */}
+      {order.tracking_number && order.status === 'shipped' && (
         <View style={styles.trackingContainer}>
           <Text style={styles.trackingCode} numberOfLines={1}>{order.tracking_number}</Text>
           <TouchableOpacity onPress={() => {/* Copy to clipboard */}}>
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: 26,
   },
   statusText: {
     fontSize: 12,
