@@ -33,6 +33,13 @@ export default function PerfilScreen() {
     }
   }, [authToken, activeTab]);
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!currentUser) {
+      router.replace('/auth/login');
+    }
+  }, [currentUser]);
+
   const handleLogout = () => {
     Alert.alert(
       'Sair',
@@ -60,8 +67,6 @@ export default function PerfilScreen() {
   };
 
   if (!currentUser) {
-    // Redirect to login if not authenticated
-    router.replace('/auth/login');
     return null;
   }
 
@@ -126,25 +131,20 @@ export default function PerfilScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.push('/(tabs)')}>
-          <Text style={styles.backButtonText}>{'<'}</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Perfil</Text>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color="#ef4444" />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <Image source={userIcon} style={styles.avatarImage} />
           </View>
-          <Text style={styles.userName}>{currentUser.name}</Text>
-          <Text style={styles.userCreatedDate}>
-            Membro desde {currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : 'N/A'}
-          </Text>
+          <View style={styles.profileInfo}>
+            <Text style={styles.userName}>{currentUser.name}</Text>
+            <Text style={styles.userCreatedDate}>
+              Desde {currentUser.createdAt ? new Date(currentUser.createdAt).getFullYear() : 'N/A'}
+            </Text>
+          </View>
+          <TouchableOpacity style={styles.menuButton} onPress={handleLogout}>
+            <Ionicons name="ellipsis-vertical" size={24} color="#111827" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.tabsContainer}>
@@ -173,8 +173,8 @@ export default function PerfilScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.homeButton} onPress={() => router.push('/(tabs)')}>
-          <Text style={styles.homeButtonText}>Levar as compras para casa</Text>
+        <TouchableOpacity style={styles.backButtonFooter} onPress={() => router.push('/(tabs)')}>
+          <Ionicons name="chevron-back" size={24} color="#111827" />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -183,41 +183,42 @@ export default function PerfilScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: {
+  scrollView: { flex: 1, marginBottom: 80 },
+  profileSection: {
     backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 3,
   },
-  headerTitle: { flex: 1, fontSize: 16, fontWeight: '600', color: '#111827', marginLeft: 12 },
-  backButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  backButtonText: { fontSize: 20, fontWeight: '300', color: '#111827' },
-  logoutButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  profileSection: { backgroundColor: '#fff', padding: 20, marginBottom: 8, alignItems: 'center' },
-  avatarContainer: {
-    width: 90,
-    height: 90,
-    marginBottom: 12,
-    borderRadius: 100,
-    borderWidth: 2,
-    borderColor: '#D9D9D9',
+  menuButton: {
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: 'auto',
   },
-  avatarImage: { width: 60, height: 60 },
-  userName: { fontSize: 20, fontWeight: 'bold', color: '#111827', marginBottom: 4 },
+  avatarContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    overflow: 'hidden',
+    marginRight: 16,
+  },
+  avatarImage: { width: 80, height: 80 },
+  profileInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  userName: { fontSize: 18, fontWeight: 'bold', color: '#111827', marginBottom: 2 },
   userCreatedDate: { fontSize: 14, color: '#6b7280' },
   tabsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 12,
     paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
   },
   tab: {
     flex: 1,
@@ -234,6 +235,26 @@ const styles = StyleSheet.create({
   loadingContainer: { alignItems: 'center', paddingVertical: 60 },
   emptyState: { alignItems: 'center', paddingVertical: 60 },
   emptyStateText: { fontSize: 14, color: '#6b7280', marginTop: 12 },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingBottom: 32,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  backButtonFooter: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   productList: { gap: 12 },
   productCard: {
     backgroundColor: '#fff',
@@ -261,18 +282,6 @@ const styles = StyleSheet.create({
   reviewButtonDisabled: { backgroundColor: '#e5e7eb' },
   reviewButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
   reviewButtonTextDisabled: { color: '#9ca3af' },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-    paddingTop: 20,
-  },
-  homeButton: { backgroundColor: '#000', height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
-  homeButtonText: { color: '#fff', fontSize: 17, fontWeight: '600' },
   wishlistGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

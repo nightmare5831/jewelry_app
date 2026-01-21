@@ -154,6 +154,25 @@ export default function Forum() {
         ) : (
           messages.map((message) => (
             <View key={message.id} style={styles.qaCard}>
+              {/* Question Maker Info */}
+              <View style={styles.qaHeader}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>
+                    {message.from_user_name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.qaHeaderInfo}>
+                  <Text style={styles.userName}>{message.from_user_name}</Text>
+                  <Text style={styles.timestamp}>
+                    {new Date(message.created_at).toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </Text>
+                </View>
+              </View>
+
               {/* Question */}
               <Text style={styles.questionText} numberOfLines={2}>{message.question}</Text>
 
@@ -361,6 +380,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 22,
     marginBottom: 8,
+    marginTop: 12,
   },
   answerText: {
     fontSize: 15,
