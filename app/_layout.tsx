@@ -63,9 +63,10 @@ export default function RootLayout() {
     const inTabsGroup = segments[0] === '(tabs)';
 
     // Allow guest browsing - only redirect authenticated users from auth pages
-    if (isAuthenticated && inAuthGroup) {
+    // Wait for currentUser to be available before redirecting
+    if (isAuthenticated && currentUser && inAuthGroup) {
       // Redirect to main app based on role
-      if (currentUser?.role === 'seller') {
+      if (currentUser.role === 'seller') {
         router.replace('/(tabs)/seller-dashboard');
       } else {
         router.replace('/(tabs)'); // Explicitly go to index for buyers/guests

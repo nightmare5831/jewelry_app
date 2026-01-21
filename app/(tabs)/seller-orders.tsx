@@ -115,6 +115,7 @@ export default function SellerOrdersScreen() {
       fetchOrders();
     } catch (err: any) {
       Alert.alert('Erro', err.message || 'Falha ao enviar produto');
+      fetchOrders(); // Refresh to show current server state
     } finally {
       setActionLoading(null);
     }
