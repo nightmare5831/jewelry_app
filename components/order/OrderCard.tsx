@@ -165,10 +165,16 @@ export default function OrderCard({
 
       {/* Product Info */}
       <View style={styles.productRow}>
-        <Image
-          source={{ uri: product?.thumbnail || product?.images?.[0] || 'https://via.placeholder.com/60' }}
-          style={styles.productImage}
-        />
+        {viewType === 'seller' ? (
+          <View style={styles.productIconContainer}>
+            <Ionicons name="diamond-outline" size={32} color="#D4AF37" />
+          </View>
+        ) : (
+          <Image
+            source={{ uri: product?.thumbnail || product?.images?.[0] || 'https://via.placeholder.com/60' }}
+            style={styles.productImage}
+          />
+        )}
         <View style={styles.productInfo}>
           <Text style={styles.productName} numberOfLines={2}>
             {product?.name || `Produto #${item?.product_id}`}
@@ -266,26 +272,34 @@ export default function OrderCard({
 
       {/* Seller: Accept/Reject for confirmed orders */}
       {viewType === 'seller' && order.status === 'confirmed' && (
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={styles.rejectButton}
-            onPress={() => onReject?.(order)}
-            disabled={isLoading}
-          >
-            <Text style={styles.rejectButtonText}>Recusar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.acceptButton}
-            onPress={() => onAccept?.(order)}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.acceptButtonText}>Aceitar</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+        <>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={styles.rejectButton}
+              onPress={() => onReject?.(order)}
+              disabled={isLoading}
+            >
+              <Text style={styles.rejectButtonText}>Recusar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.acceptButton}
+              onPress={() => onAccept?.(order)}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.acceptButtonText}>Aceitar</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+          {onViewAddress && (
+            <TouchableOpacity style={styles.addressButton} onPress={() => onViewAddress(order)}>
+              <Ionicons name="location-outline" size={16} color="#111827" />
+              <Text style={styles.addressButtonText}>Ver endereço</Text>
+            </TouchableOpacity>
+          )}
+        </>
       )}
 
       {/* Buyer: Status message */}
@@ -293,8 +307,8 @@ export default function OrderCard({
         <Text style={styles.statusMessage}>{status.buyerMessage}</Text>
       )}
 
-      {/* Ver endereço button */}
-      {onViewAddress && ['confirmed', 'accepted', 'shipped', 'delivered'].includes(order.status) && (
+      {/* Seller: Ver endereço button for other statuses */}
+      {viewType === 'seller' && order.status !== 'confirmed' && onViewAddress && ['accepted', 'shipped', 'delivered'].includes(order.status) && (
         <TouchableOpacity style={styles.addressButton} onPress={() => onViewAddress(order)}>
           <Ionicons name="location-outline" size={16} color="#111827" />
           <Text style={styles.addressButtonText}>Ver endereço</Text>
@@ -356,6 +370,14 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 8,
     backgroundColor: '#f3f4f6',
+  },
+  productIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 8,
+    backgroundColor: '#fffbeb',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   productInfo: {
     flex: 1,
@@ -467,7 +489,7 @@ const styles = StyleSheet.create({
   actionButtons: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   rejectButton: {
     flex: 1,
@@ -475,6 +497,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e5e7eb',
+    backgroundColor: '#ffffff',
     alignItems: 'center',
   },
   rejectButtonText: {
@@ -508,6 +531,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e5e7eb',
+    backgroundColor: '#ffffff',
   },
   addressButtonText: {
     fontSize: 14,
