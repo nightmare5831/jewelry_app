@@ -45,11 +45,13 @@ export default function PerfilScreen() {
           onPress: async () => {
             try {
               await logout();
+              // Navigate to main catalog/index page explicitly
+              // This prevents briefly showing the profile guest screen
+              router.replace('/(tabs)/');
             } catch (error) {
               console.error('Logout failed:', error);
-            } finally {
-              // Always navigate to home after logout attempt
-              router.replace('/(tabs)');
+              // Navigate even if logout fails
+              router.replace('/(tabs)/');
             }
           },
         },
@@ -58,29 +60,9 @@ export default function PerfilScreen() {
   };
 
   if (!currentUser) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.push('/(tabs)')}>
-            <Ionicons name="arrow-back" size={24} color="#111827" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Perfil</Text>
-        </View>
-        <View style={styles.guestContainer}>
-          <Ionicons name="person-circle-outline" size={120} color="#d1d5db" />
-          <Text style={styles.guestTitle}>Entre para acessar seu perfil</Text>
-          <Text style={styles.guestSubtitle}>
-            Faça login ou crie uma conta para gerenciar suas compras, favoritos e mais.
-          </Text>
-          <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/auth/login')}>
-            <Text style={styles.loginButtonText}>Entrar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.registerButton} onPress={() => router.push('/auth/register')}>
-            <Text style={styles.registerButtonText}>Criar conta</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
+    // Redirect to login if not authenticated
+    router.replace('/auth/login');
+    return null;
   }
 
   const handleViewReason = (order: Order) => {
@@ -291,39 +273,6 @@ const styles = StyleSheet.create({
   },
   homeButton: { backgroundColor: '#000', height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   homeButtonText: { color: '#fff', fontSize: 17, fontWeight: '600' },
-  guestContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  guestTitle: { fontSize: 24, fontWeight: 'bold', color: '#111827', marginTop: 24, textAlign: 'center' },
-  guestSubtitle: { fontSize: 16, color: '#6b7280', marginTop: 12, textAlign: 'center', lineHeight: 24 },
-  loginButton: {
-    marginTop: 32,
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 48,
-    paddingVertical: 16,
-    borderRadius: 12,
-    width: '100%',
-    alignItems: 'center',
-  },
-  loginButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  registerButton: {
-    marginTop: 16,
-    backgroundColor: '#fff',
-    paddingHorizontal: 48,
-    paddingVertical: 16,
-    borderRadius: 12,
-    width: '100%',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#3b82f6',
-  },
-  registerButtonText: { color: '#3b82f6', fontSize: 18, fontWeight: 'bold' },
-  shopNowButton: {
-    marginTop: 16,
-    backgroundColor: '#000',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  shopNowButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
   wishlistGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

@@ -15,6 +15,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { router, useLocalSearchParams } from 'expo-router';
 import { messageApi, QAMessage } from '../../services/api';
+import { requireAuth } from '../../utils/authUtils';
 
 export default function Forum() {
   const { sellerId, sellerName } = useLocalSearchParams<{ sellerId: string; sellerName: string }>();
@@ -67,13 +68,7 @@ export default function Forum() {
   };
 
   const handleCreateQuestion = async () => {
-    if (!authToken) {
-      Alert.alert('Login necessário', 'Faça login para enviar uma pergunta', [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Login', onPress: () => router.push('/auth/login') },
-      ]);
-      return;
-    }
+    if (!requireAuth(authToken, 'Faça login para enviar uma pergunta')) return;
     if (!newQuestionText.trim() || !sellerIdNum) return;
     try {
       await messageApi.createQuestion(authToken, sellerIdNum, newQuestionText);
@@ -88,13 +83,7 @@ export default function Forum() {
   };
 
   const handleAnswer = async (messageId: number) => {
-    if (!authToken) {
-      Alert.alert('Login necessário', 'Faça login para responder', [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Login', onPress: () => router.push('/auth/login') },
-      ]);
-      return;
-    }
+    if (!requireAuth(authToken, 'Faça login para responder')) return;
     if (!answerText.trim()) return;
     try {
       await messageApi.answerQuestion(authToken, messageId, answerText);
@@ -109,13 +98,7 @@ export default function Forum() {
   };
 
   const handleNewQuestionPress = () => {
-    if (!authToken) {
-      Alert.alert('Login necessário', 'Faça login para enviar uma pergunta', [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Login', onPress: () => router.push('/auth/login') },
-      ]);
-      return;
-    }
+    if (!requireAuth(authToken, 'Faça login para enviar uma pergunta')) return;
     setShowNewQuestion(true);
   };
 
