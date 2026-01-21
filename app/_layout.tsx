@@ -75,12 +75,16 @@ export default function RootLayout() {
       // Simple rule: Only block non-sellers from accessing seller routes
       const currentRoute = segments[1];
       const isSellerRoute = currentRoute?.startsWith('seller-');
+      const isBuyerDashboard = !currentRoute; // Empty or undefined means index route
 
       if (currentUser.role !== 'seller' && isSellerRoute) {
         // Buyer/Admin trying to access seller routes → redirect to buyer dashboard
         router.replace('/(tabs)');
+      } else if (currentUser.role === 'seller' && isBuyerDashboard) {
+        // Seller trying to access buyer dashboard → redirect to seller dashboard
+        router.replace('/(tabs)/seller-dashboard');
       }
-      // Sellers can access any route (seller-* or buyer routes)
+      // Sellers can access seller-* routes and other specific routes
     } else if (!isAuthenticated && inTabsGroup && segments[1]?.startsWith('seller-')) {
       // Unauthenticated user trying to access seller routes → redirect to catalog
       router.replace('/(tabs)');
