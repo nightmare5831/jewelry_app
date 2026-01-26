@@ -259,6 +259,14 @@ export default function ProductFormScreen() {
     setLoading(true);
 
     try {
+      // Determine material based on gold karat
+      let material = 'Outros';
+      if (formData.gold_karat === '18k') {
+        material = 'Ouro 18K';
+      } else if (formData.gold_karat === '10k') {
+        material = 'Ouro 10K';
+      }
+
       const productData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -266,6 +274,7 @@ export default function ProductFormScreen() {
         subcategory: formData.subcategory || undefined,
         filling: formData.filling || undefined,
         is_gemstone: formData.is_gemstone || undefined,
+        material: material,
         base_price: parseFloat(formData.base_price),
         gold_weight_grams: parseFloat(formData.gold_weight_grams),
         gold_karat: formData.gold_karat,
