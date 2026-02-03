@@ -179,6 +179,7 @@ export default function CheckoutScreen() {
         shipping_address: address,
         payment_method: 'credit_card',
         cart_item_ids: selectedItemIds,
+        shipping_amount: shippingCost ?? 0,
       });
 
       // Navigate to payment screen immediately
