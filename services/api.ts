@@ -578,6 +578,7 @@ export interface Order {
   shipped_at?: string;
   items: OrderItem[];
   payment?: Payment;
+  payments?: Payment[];
   buyer?: {
     name: string;
     email: string;
@@ -601,7 +602,6 @@ export interface Payment {
 
 export interface CreateOrderData {
   shipping_address: ShippingAddress;
-  payment_method: 'pix' | 'credit_card' | 'boleto';
   cart_item_ids?: number[];
   shipping_amount?: number;
 }
