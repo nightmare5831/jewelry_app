@@ -365,6 +365,31 @@ export const authApi = {
     return response.user;
   },
 
+  // Update profile
+  updateProfile: async (token: string, data: { name?: string; phone?: string; avatar_url?: string }): Promise<LoginResponse> => {
+    return await apiCall<LoginResponse>('/me', {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Forgot password
+  forgotPassword: async (email: string): Promise<{ success: boolean; message: string }> => {
+    return await apiCall<{ success: boolean; message: string }>('/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  // Reset password
+  resetPassword: async (email: string, code: string, password: string, password_confirmation: string): Promise<{ success: boolean; message: string }> => {
+    return await apiCall<{ success: boolean; message: string }>('/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, password, password_confirmation }),
+    });
+  },
+
   // Refresh token
   refresh: async (token: string): Promise<LoginResponse> => {
     const response = await apiCall<LoginResponse>('/refresh', {
@@ -382,8 +407,10 @@ export interface QAMessage {
   id: number;
   from_user_id: number;
   from_user_name: string;
+  from_user_avatar: string | null;
   to_user_id: number;
   to_user_name: string;
+  to_user_avatar: string | null;
   question: string;
   answer: string | null;
   answered_at: string | null;
